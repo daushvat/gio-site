@@ -46,21 +46,23 @@ button {
   padding: 24px;
   overflow: hidden;
   background:
-    radial-gradient(circle at 18% 20%, rgba(255, 0, 122, 0.92), transparent 25%),
-    radial-gradient(circle at 82% 14%, rgba(0, 224, 255, 0.9), transparent 28%),
-    radial-gradient(circle at 25% 86%, rgba(255, 214, 0, 0.86), transparent 28%),
-    radial-gradient(circle at 86% 78%, rgba(72, 255, 0, 0.74), transparent 28%),
+    radial-gradient(circle at 18% 20%, rgba(255, 0, 122, 0.7), transparent 25%),
+    radial-gradient(circle at 82% 14%, rgba(0, 224, 255, 0.64), transparent 28%),
+    radial-gradient(circle at 25% 86%, rgba(255, 214, 0, 0.62), transparent 28%),
+    radial-gradient(circle at 86% 78%, rgba(72, 255, 0, 0.56), transparent 28%),
     conic-gradient(
       from 160deg at 50% 50%,
-      #ff004c,
-      #ff7a00,
-      #fff000,
-      #00ff85,
-      #00c8ff,
-      #6a00ff,
-      #ff00d4,
-      #ff004c
-    );
+      rgba(255, 0, 76, 0.52),
+      rgba(255, 122, 0, 0.46),
+      rgba(255, 240, 0, 0.42),
+      rgba(0, 255, 133, 0.38),
+      rgba(0, 200, 255, 0.42),
+      rgba(106, 0, 255, 0.5),
+      rgba(255, 0, 212, 0.5),
+      rgba(255, 0, 76, 0.52)
+    ),
+    linear-gradient(rgba(8, 0, 21, 0.26), rgba(8, 0, 21, 0.44)),
+    url("/gio-background.jpg") center / cover no-repeat;
 }
 
 .page-shell::before {
@@ -70,11 +72,12 @@ button {
   background:
     repeating-linear-gradient(
       115deg,
-      rgba(255, 255, 255, 0.24) 0 10px,
+      rgba(255, 255, 255, 0.18) 0 10px,
       transparent 10px 34px
     ),
-    linear-gradient(135deg, rgba(8, 0, 21, 0.2), rgba(8, 0, 21, 0.56));
-  mix-blend-mode: overlay;
+    linear-gradient(135deg, rgba(255, 0, 110, 0.2), rgba(58, 134, 255, 0.26));
+  mix-blend-mode: color-dodge;
+  opacity: 0.68;
   animation: colorSlide 16s linear infinite;
 }
 
