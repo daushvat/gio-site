@@ -15,7 +15,7 @@ document.querySelector('#app').innerHTML = `
         Loud rainbows, saturated joy, and one extremely serious DODO button.
       </p>
       <button class="dodo-button" type="button">
-        Make my your DODO
+        Make Gio Great Again
       </button>
     </section>
   </main>
