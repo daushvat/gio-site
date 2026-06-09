@@ -49,7 +49,7 @@ document.querySelector('#app').innerHTML = `
 
       <div class="bet-panel" aria-label="Emoji slot betting controls">
         <div class="points-card">
-          <span>Points</span>
+          <span>DoDo Points</span>
           <strong class="points-value">1000</strong>
         </div>
         <label class="stake-control">
