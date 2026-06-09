@@ -11,6 +11,26 @@ const outcomes = [
   { label: 'Sticker', short: 'Sticker', icon: '/dodo-arrow.webp', multiplier: 100, isSticker: true },
 ]
 
+const bonusHandsNeeded = 5
+const bonusMultipliers = [
+  2, 2, 2, 2, 2, 2, 2, 2,
+  3, 3, 3, 3, 3, 3, 3,
+  4, 4, 4, 4, 4, 4,
+  5, 5, 5, 5, 5,
+  6, 6, 6, 6,
+  8, 8, 8, 8,
+  10, 10, 10,
+  12, 12, 12,
+  15, 15,
+  20, 20,
+  25,
+  30,
+  40,
+  50,
+  75,
+  100,
+]
+
 document.querySelector('#app').innerHTML = `
   <canvas class="fireworks" aria-hidden="true"></canvas>
   <main class="page-shell">
@@ -45,6 +65,17 @@ document.querySelector('#app').innerHTML = `
           <span class="win-burst__label">WIN</span>
           <span class="win-burst__shine"></span>
         </div>
+
+        <div class="bonus-wheel" aria-hidden="true">
+          <div class="bonus-wheel__card">
+            <span class="bonus-wheel__eyebrow">Bonus Game</span>
+            <div class="bonus-wheel__pointer" aria-hidden="true"></div>
+            <div class="bonus-wheel__disc">
+              <span class="bonus-wheel__multiplier">x2</span>
+            </div>
+            <p class="bonus-wheel__text">50 chances from x2 to x100</p>
+          </div>
+        </div>
       </div>
 
       <div class="bet-panel" aria-label="Emoji slot betting controls">
@@ -60,6 +91,15 @@ document.querySelector('#app').innerHTML = `
             <button class="stake-coin" type="button" data-stake="30">30</button>
             <button class="stake-coin" type="button" data-stake="40">40</button>
             <button class="stake-coin" type="button" data-stake="50">50</button>
+          </div>
+        </div>
+        <div class="bonus-meter" aria-label="Bonus progress">
+          <div class="bonus-meter__top">
+            <span>Bonus</span>
+            <strong class="bonus-meter__count">0/5</strong>
+          </div>
+          <div class="bonus-meter__track" aria-hidden="true">
+            <span class="bonus-meter__fill"></span>
           </div>
         </div>
         <p class="bet-result" aria-live="polite">Bet 10 to 50. Triple sticker jackpot pays x100.</p>
@@ -80,6 +120,11 @@ const winBurst = document.querySelector('.win-burst')
 const pointsValue = document.querySelector('.points-value')
 const stakeButtons = [...document.querySelectorAll('.stake-coin')]
 const betResult = document.querySelector('.bet-result')
+const bonusMeterFill = document.querySelector('.bonus-meter__fill')
+const bonusMeterCount = document.querySelector('.bonus-meter__count')
+const bonusWheel = document.querySelector('.bonus-wheel')
+const bonusWheelMultiplier = document.querySelector('.bonus-wheel__multiplier')
+const bonusWheelText = document.querySelector('.bonus-wheel__text')
 const particles = []
 const colors = ['#ff1744', '#ff9100', '#ffea00', '#00e676', '#00b0ff', '#651fff', '#ff00cc']
 let width = 0
@@ -93,6 +138,8 @@ let points = 1000
 let displayedPoints = points
 let pointsAnimationTimer = 0
 let winSoundLoopTimer = 0
+let bonusWheelTimer = 0
+let bonusHands = 0
 let selectedStake = 10
 
 function getRandomOutcome(excludedOutcome = null) {
@@ -257,6 +304,12 @@ function updatePoints() {
   updateStakeLimit()
 }
 
+function updateBonusMeter() {
+  const progress = Math.min(bonusHands / bonusHandsNeeded, 1)
+  bonusMeterFill.style.width = `${progress * 100}%`
+  bonusMeterCount.textContent = `${Math.min(bonusHands, bonusHandsNeeded)}/${bonusHandsNeeded}`
+}
+
 function animatePointsTo(targetPoints, onPositiveStep = null) {
   window.clearTimeout(pointsAnimationTimer)
   updateStakeLimit()
@@ -381,6 +434,68 @@ function showWinBurst(outcome) {
   }, 1500)
 }
 
+function getBonusMultiplier() {
+  return bonusMultipliers[Math.floor(Math.random() * bonusMultipliers.length)]
+}
+
+function playBonusWheelSound() {
+  const notes = [330, 392, 494, 587, 698, 880, 1046]
+  notes.forEach((frequency, index) => {
+    setTimeout(() => {
+      playTone({ frequency, slideTo: frequency * 1.08, duration: 0.08, type: index % 2 ? 'square' : 'triangle', volume: 0.055 })
+    }, index * 90)
+  })
+}
+
+function showBonusWheel(multiplier) {
+  window.clearTimeout(bonusWheelTimer)
+  bonusWheelMultiplier.textContent = '?'
+  bonusWheelText.textContent = 'Bonus wheel spinning...'
+  bonusWheel.classList.remove('is-visible', 'is-finished')
+  bonusWheel.style.setProperty('--bonus-rotation', `${1440 + Math.random() * 720}deg`)
+  bonusWheel.offsetHeight
+  bonusWheel.classList.add('is-visible')
+  playBonusWheelSound()
+
+  return new Promise((resolve) => {
+    bonusWheelTimer = window.setTimeout(() => {
+      bonusWheelMultiplier.textContent = `x${multiplier}`
+      bonusWheelText.textContent = `Bonus landed on x${multiplier}`
+      bonusWheel.classList.add('is-finished')
+      launchDoDoCoins()
+      resolve()
+    }, 1900)
+  })
+}
+
+async function playBonusGame(stake) {
+  const multiplier = getBonusMultiplier()
+  const payout = stake * multiplier
+
+  button.textContent = 'Bonus...'
+  betResult.textContent = 'Bonus meter full. Entering bonus wheel.'
+  await showBonusWheel(multiplier)
+  points += payout
+  updateStakeLimit()
+  betResult.textContent = `Bonus wheel x${multiplier}. Won ${payout} DoDo Points.`
+  startWinSoundLoop()
+
+  let coinBursts = 0
+  await animatePointsTo(points, (positiveSteps) => {
+    if (positiveSteps % 18 !== 0 || coinBursts >= 18) {
+      return
+    }
+
+    coinBursts += 1
+    launchDoDoCoins()
+  })
+
+  stopWinSoundLoop()
+  bonusWheelTimer = window.setTimeout(() => {
+    bonusWheel.classList.remove('is-visible', 'is-finished')
+  }, 600)
+}
+
 async function settleBet(spinResult, stake) {
   const [firstReel, secondReel, thirdReel] = spinResult.reels
   const won = firstReel.label === secondReel.label && secondReel.label === thirdReel.label
@@ -438,6 +553,8 @@ function spinSlots() {
   updatePointsDisplay()
   clearTimeout(winBurstTimer)
   winBurst.classList.remove('is-visible', 'is-sticker-jackpot')
+  window.clearTimeout(bonusWheelTimer)
+  bonusWheel.classList.remove('is-visible', 'is-finished')
   getAudioContext()
   button.disabled = true
   button.textContent = 'Spinning...'
@@ -506,7 +623,17 @@ function spinSlots() {
     reelSymbols.forEach((_, index) => setReelSymbol(index, spinResult.reels[index], true))
     slotReels.forEach((reel) => reel.classList.remove('is-spinning'))
     slotReels.forEach((reel) => reel.classList.remove('is-dramatic'))
-    settleBet(spinResult, stake).then(() => {
+    settleBet(spinResult, stake).then(async () => {
+      bonusHands += 1
+      updateBonusMeter()
+
+      if (bonusHands >= bonusHandsNeeded) {
+        await new Promise((resolve) => setTimeout(resolve, 520))
+        await playBonusGame(stake)
+        bonusHands = 0
+        updateBonusMeter()
+      }
+
       button.disabled = false
       button.textContent = 'Spin'
     })
@@ -581,12 +708,14 @@ resizeCanvas()
 updateResult(outcomes[0])
 reelSymbols.forEach((_, index) => setReelSymbol(index, outcomes[0], true))
 updatePoints()
+updateBonusMeter()
 animate()
 
 setTimeout(launchButtonShow, 600)
 
 window.addEventListener('beforeunload', () => {
   stopWinSoundLoop()
+  window.clearTimeout(bonusWheelTimer)
   cancelAnimationFrame(animationFrame)
   cancelAnimationFrame(spinFrame)
 })

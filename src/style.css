@@ -405,6 +405,175 @@ input {
     0 16px 34px rgba(0, 0, 0, 0.44);
 }
 
+.bonus-wheel {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.9);
+  transition:
+    opacity 220ms ease,
+    transform 220ms ease;
+}
+
+.bonus-wheel.is-visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.bonus-wheel__card {
+  width: min(92%, 360px);
+  display: grid;
+  place-items: center;
+  gap: 10px;
+  padding: 16px;
+  border: 4px solid rgba(255, 255, 255, 0.92);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 22% 18%, rgba(255, 255, 255, 0.3), transparent 20%),
+    linear-gradient(145deg, rgba(18, 0, 36, 0.95), rgba(120, 0, 118, 0.9), rgba(0, 50, 82, 0.94));
+  box-shadow:
+    0 0 0 8px rgba(255, 240, 0, 0.22),
+    0 22px 48px rgba(0, 0, 0, 0.56);
+}
+
+.bonus-wheel__eyebrow {
+  color: #fff000;
+  font-size: 13px;
+  font-weight: 950;
+  line-height: 1;
+  text-transform: uppercase;
+  text-shadow: 0 2px 0 #ff006e;
+}
+
+.bonus-wheel__pointer {
+  width: 0;
+  height: 0;
+  border-right: 14px solid transparent;
+  border-left: 14px solid transparent;
+  border-top: 24px solid #ffffff;
+  filter: drop-shadow(0 0 10px rgba(255, 240, 0, 0.9));
+}
+
+.bonus-wheel__disc {
+  --bonus-rotation: 1800deg;
+  position: relative;
+  width: clamp(150px, 38vw, 220px);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border: 6px solid #fff6b8;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at center, #120024 0 26%, transparent 27%),
+    conic-gradient(
+      from -8deg,
+      #ff006e 0 7.2deg,
+      #fff000 7.2deg 14.4deg,
+      #00ff85 14.4deg 21.6deg,
+      #00d5ff 21.6deg 28.8deg,
+      #b000ff 28.8deg 36deg,
+      #ff006e 36deg 43.2deg,
+      #fff000 43.2deg 50.4deg,
+      #00ff85 50.4deg 57.6deg,
+      #00d5ff 57.6deg 64.8deg,
+      #b000ff 64.8deg 72deg,
+      #ff006e 72deg 79.2deg,
+      #fff000 79.2deg 86.4deg,
+      #00ff85 86.4deg 93.6deg,
+      #00d5ff 93.6deg 100.8deg,
+      #b000ff 100.8deg 108deg,
+      #ff006e 108deg 115.2deg,
+      #fff000 115.2deg 122.4deg,
+      #00ff85 122.4deg 129.6deg,
+      #00d5ff 129.6deg 136.8deg,
+      #b000ff 136.8deg 144deg,
+      #ff006e 144deg 151.2deg,
+      #fff000 151.2deg 158.4deg,
+      #00ff85 158.4deg 165.6deg,
+      #00d5ff 165.6deg 172.8deg,
+      #b000ff 172.8deg 180deg,
+      #ff006e 180deg 187.2deg,
+      #fff000 187.2deg 194.4deg,
+      #00ff85 194.4deg 201.6deg,
+      #00d5ff 201.6deg 208.8deg,
+      #b000ff 208.8deg 216deg,
+      #ff006e 216deg 223.2deg,
+      #fff000 223.2deg 230.4deg,
+      #00ff85 230.4deg 237.6deg,
+      #00d5ff 237.6deg 244.8deg,
+      #b000ff 244.8deg 252deg,
+      #ff006e 252deg 259.2deg,
+      #fff000 259.2deg 266.4deg,
+      #00ff85 266.4deg 273.6deg,
+      #00d5ff 273.6deg 280.8deg,
+      #b000ff 280.8deg 288deg,
+      #ff006e 288deg 295.2deg,
+      #fff000 295.2deg 302.4deg,
+      #00ff85 302.4deg 309.6deg,
+      #00d5ff 309.6deg 316.8deg,
+      #b000ff 316.8deg 324deg,
+      #ff006e 324deg 331.2deg,
+      #fff000 331.2deg 338.4deg,
+      #00ff85 338.4deg 345.6deg,
+      #00d5ff 345.6deg 352.8deg,
+      #b000ff 352.8deg 360deg
+    );
+  box-shadow:
+    inset 0 0 0 8px rgba(255, 255, 255, 0.22),
+    inset 0 0 32px rgba(18, 0, 36, 0.5),
+    0 0 36px rgba(255, 240, 0, 0.78);
+}
+
+.bonus-wheel.is-visible .bonus-wheel__disc {
+  animation: bonusWheelSpin 1900ms cubic-bezier(0.12, 0.78, 0.18, 1) both;
+}
+
+.bonus-wheel.is-finished .bonus-wheel__disc {
+  animation: bonusWheelWin 700ms ease-in-out infinite alternate;
+}
+
+.bonus-wheel__disc::after {
+  content: "";
+  position: absolute;
+  inset: 16%;
+  border: 3px solid rgba(255, 255, 255, 0.88);
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at 28% 24%, rgba(255, 255, 255, 0.75), transparent 18%),
+    linear-gradient(145deg, #6d3900, #d88900 34%, #fff6b8 52%, #b86a00 74%, #5c2e00);
+  box-shadow:
+    inset 0 4px 0 rgba(255, 255, 255, 0.58),
+    inset 0 -12px 18px rgba(80, 38, 0, 0.44);
+}
+
+.bonus-wheel__multiplier {
+  position: relative;
+  z-index: 1;
+  color: #ffffff;
+  font-size: clamp(42px, 10vw, 70px);
+  font-weight: 950;
+  line-height: 1;
+  text-shadow:
+    0 3px 0 #ff006e,
+    0 7px 0 #120024,
+    0 0 18px rgba(255, 240, 0, 0.95);
+}
+
+.bonus-wheel__text {
+  min-height: 18px;
+  margin: 0;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.2;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.72);
+}
+
 .bet-panel {
   width: min(100%, 560px);
   display: grid;
@@ -530,6 +699,57 @@ input {
   filter: grayscale(0.75) brightness(0.62);
   opacity: 0.52;
   transform: none;
+}
+
+.bonus-meter {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 7px;
+  padding: 8px 10px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.bonus-meter__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.bonus-meter__top span,
+.bonus-meter__top strong {
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 950;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.bonus-meter__count {
+  color: #fff000;
+  text-shadow: 0 2px 0 #ff006e;
+}
+
+.bonus-meter__track {
+  height: 14px;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 999px;
+  background: rgba(8, 0, 21, 0.72);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.48);
+}
+
+.bonus-meter__fill {
+  display: block;
+  width: 0%;
+  height: 100%;
+  border-radius: inherit;
+  background:
+    linear-gradient(90deg, #ff006e, #fff000, #00ff85, #00d5ff);
+  box-shadow: 0 0 18px rgba(255, 240, 0, 0.9);
+  transition: width 360ms ease;
 }
 
 .bet-result {
@@ -665,6 +885,30 @@ input {
   100% {
     opacity: 0;
     transform: translateX(42%);
+  }
+}
+
+@keyframes bonusWheelSpin {
+  from {
+    transform: rotate(0deg) scale(0.94);
+  }
+
+  72% {
+    transform: rotate(var(--bonus-rotation)) scale(1.05);
+  }
+
+  to {
+    transform: rotate(var(--bonus-rotation)) scale(1);
+  }
+}
+
+@keyframes bonusWheelWin {
+  from {
+    filter: saturate(1.1) brightness(1);
+  }
+
+  to {
+    filter: saturate(1.6) brightness(1.16);
   }
 }
 
