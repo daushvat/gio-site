@@ -41,19 +41,6 @@ document.querySelector('#app').innerHTML = `
           <span></span>
         </div>
 
-        <div class="slot-payouts" aria-label="Slot payouts">
-          ${outcomes
-            .map(
-              (outcome, index) => `
-                <div class="payout-card${index === 0 ? ' is-active' : ''}" data-symbol="${outcome.label}">
-                  <span class="payout-icon">${outcome.icon}</span>
-                  <strong>${outcome.short}</strong>
-                  <small>x${outcome.multiplier}</small>
-                </div>
-              `,
-            )
-            .join('')}
-        </div>
       </div>
 
       <div class="bet-panel" aria-label="DODO betting controls">
@@ -80,7 +67,6 @@ const scoreValue = document.querySelector('.score-value')
 const slotResultLabel = document.querySelector('.slot-result-label')
 const slotReels = [...document.querySelectorAll('.slot-reel')]
 const reelSymbols = [...document.querySelectorAll('.reel-symbol')]
-const payoutCards = [...document.querySelectorAll('.payout-card')]
 const pointsValue = document.querySelector('.points-value')
 const stakeInput = document.querySelector('.stake-input')
 const betResult = document.querySelector('.bet-result')
@@ -187,9 +173,6 @@ function playSuspenseSound() {
 function updateResult(outcome) {
   scoreValue.textContent = `x${outcome.multiplier}`
   slotResultLabel.textContent = outcome.label
-  payoutCards.forEach((card) => {
-    card.classList.toggle('is-active', card.dataset.symbol === outcome.label)
-  })
 
   return outcome
 }

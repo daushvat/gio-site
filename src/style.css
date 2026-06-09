@@ -308,62 +308,6 @@ input {
   box-shadow: 0 0 24px rgba(255, 240, 0, 0.86);
 }
 
-.slot-payouts {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.payout-card {
-  min-width: 0;
-  min-height: 76px;
-  display: grid;
-  place-items: center;
-  gap: 3px;
-  padding: 8px;
-  border: 2px solid rgba(255, 255, 255, 0.68);
-  border-radius: 8px;
-  background: rgba(8, 0, 21, 0.72);
-  color: #ffffff;
-  text-transform: uppercase;
-  transition:
-    background 150ms ease,
-    box-shadow 150ms ease;
-}
-
-.payout-card.is-active {
-  background: linear-gradient(135deg, rgba(255, 0, 110, 0.94), rgba(255, 240, 0, 0.88), rgba(0, 213, 255, 0.92));
-  color: #120024;
-  box-shadow:
-    0 0 0 4px rgba(255, 255, 255, 0.18),
-    0 0 22px rgba(255, 240, 0, 0.56);
-}
-
-.payout-icon {
-  width: 30px;
-  height: 30px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: #fff000;
-  color: #120024;
-  font-size: 15px;
-  font-weight: 950;
-  box-shadow: 0 3px 0 rgba(255, 0, 110, 0.76);
-}
-
-.payout-card strong {
-  font-size: 12px;
-  font-weight: 950;
-  line-height: 1;
-}
-
-.payout-card small {
-  font-size: 11px;
-  font-weight: 900;
-  line-height: 1;
-}
-
 .bet-panel {
   width: min(100%, 560px);
   display: grid;
@@ -547,10 +491,6 @@ input {
 
   .slot-reel {
     height: clamp(88px, 26vw, 112px);
-  }
-
-  .slot-payouts {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .bet-panel {
