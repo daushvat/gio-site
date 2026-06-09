@@ -2,6 +2,7 @@ import './style.css'
 
 document.querySelector('#app').innerHTML = `
   <canvas class="fireworks" aria-hidden="true"></canvas>
+  <div class="result-background" aria-hidden="true"></div>
   <main class="page-shell">
     <section class="hero" aria-label="Personal site">
       <p class="intro">
@@ -63,6 +64,7 @@ document.querySelector('#app').innerHTML = `
 
 const canvas = document.querySelector('.fireworks')
 const context = canvas.getContext('2d')
+const resultBackground = document.querySelector('.result-background')
 const button = document.querySelector('.dodo-button')
 const meterValue = document.querySelector('.meter-value')
 const meterLabel = document.querySelector('.meter-label')
@@ -210,6 +212,7 @@ function runMeasurement() {
   const stake = clampStake()
   const bet = selectedBet
   cancelAnimationFrame(measureFrame)
+  resultBackground.classList.remove('is-visible')
   launchButtonShow()
 
   const target = 1 + Math.floor(Math.random() * 100)
@@ -251,6 +254,7 @@ function runMeasurement() {
     betResult.textContent = won
       ? `Won ${stake * 3} points on ${result}.`
       : `Lost ${stake} points. Result: ${result}.`
+    resultBackground.classList.add('is-visible')
     button.disabled = false
     button.textContent = 'Measure'
     launchButtonShow()
