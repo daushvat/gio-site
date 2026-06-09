@@ -17,19 +17,42 @@ document.querySelector('#app').innerHTML = `
         </div>
       </div>
       <div class="dodo-wheel" aria-label="DODO meter wheel">
+        <div class="wheel-glow" aria-hidden="true"></div>
         <div class="wheel-arrow" aria-hidden="true"></div>
-        <div class="wheel-square is-active" data-min="1" data-max="25" data-angle="-135">
+        <div class="wheel-hub" aria-hidden="true">?</div>
+        <div class="wheel-square is-active" data-label="DODO" data-min="1" data-max="25" data-angle="-135">
+          <span class="wheel-badge">x1</span>
           DODO
         </div>
-        <div class="wheel-square" data-min="26" data-max="50" data-angle="-45">
+        <div class="wheel-square" data-label="BIG DODO" data-min="26" data-max="50" data-angle="-45">
+          <span class="wheel-badge">x2</span>
           BIG DODO
         </div>
-        <div class="wheel-square" data-min="51" data-max="75" data-angle="135">
+        <div class="wheel-square" data-label="DODOLA" data-min="51" data-max="75" data-angle="135">
+          <span class="wheel-badge">x3</span>
           DODOLA
         </div>
-        <div class="wheel-square" data-min="76" data-max="100" data-angle="45">
+        <div class="wheel-square" data-label="DODOLA YLE" data-min="76" data-max="100" data-angle="45">
+          <span class="wheel-badge">x4</span>
           DODOLA YLE
         </div>
+      </div>
+      <div class="bet-panel" aria-label="DODO betting controls">
+        <div class="points-card">
+          <span>Points</span>
+          <strong class="points-value">1000</strong>
+        </div>
+        <label class="stake-control">
+          <span>Bet</span>
+          <input class="stake-input" type="number" min="10" max="1000" step="10" value="100">
+        </label>
+        <div class="bet-picks" role="group" aria-label="Pick an outcome">
+          <button class="bet-pick is-selected" type="button" data-bet="DODO">DODO</button>
+          <button class="bet-pick" type="button" data-bet="BIG DODO">BIG</button>
+          <button class="bet-pick" type="button" data-bet="DODOLA">DODOLA</button>
+          <button class="bet-pick" type="button" data-bet="DODOLA YLE">YLE</button>
+        </div>
+        <p class="bet-result" aria-live="polite">Pick a square and measure.</p>
       </div>
       <button class="dodo-button" type="button">
         Measure
@@ -45,13 +68,20 @@ const meterValue = document.querySelector('.meter-value')
 const meterLabel = document.querySelector('.meter-label')
 const meterFill = document.querySelector('.meter-fill')
 const wheelArrow = document.querySelector('.wheel-arrow')
+const wheelHub = document.querySelector('.wheel-hub')
 const wheelSquares = [...document.querySelectorAll('.wheel-square')]
+const pointsValue = document.querySelector('.points-value')
+const stakeInput = document.querySelector('.stake-input')
+const betPicks = [...document.querySelectorAll('.bet-pick')]
+const betResult = document.querySelector('.bet-result')
 const particles = []
 const colors = ['#ff1744', '#ff9100', '#ffea00', '#00e676', '#00b0ff', '#651fff', '#ff00cc']
 let width = 0
 let height = 0
 let animationFrame = 0
 let measureFrame = 0
+let points = 1000
+let selectedBet = 'DODO'
 
 function getDodoLabel(value) {
   if (value <= 25) {
@@ -71,9 +101,11 @@ function getDodoLabel(value) {
 
 function updateMeter(value) {
   const roundedValue = Math.max(1, Math.min(100, Math.round(value)))
+  const label = getDodoLabel(roundedValue)
   meterValue.textContent = `${roundedValue}%`
-  meterLabel.textContent = getDodoLabel(roundedValue)
+  meterLabel.textContent = label
   meterFill.style.width = `${roundedValue}%`
+  wheelHub.textContent = roundedValue
 
   wheelSquares.forEach((square) => {
     const min = Number(square.dataset.min)
@@ -84,6 +116,30 @@ function updateMeter(value) {
     if (isActive) {
       wheelArrow.style.transform = `translate(-50%, -50%) rotate(${square.dataset.angle}deg)`
     }
+  })
+
+  return label
+}
+
+function updatePoints() {
+  pointsValue.textContent = points.toLocaleString()
+  stakeInput.max = String(Math.max(points, 10))
+}
+
+function clampStake() {
+  const rawStake = Number(stakeInput.value)
+  const stake = Number.isFinite(rawStake) ? rawStake : 10
+  const maxStake = Math.max(points, 10)
+  const clampedStake = Math.max(10, Math.min(maxStake, Math.round(stake / 10) * 10))
+  stakeInput.value = String(clampedStake)
+  return clampedStake
+}
+
+function setSelectedBet(bet) {
+  selectedBet = bet
+
+  betPicks.forEach((pick) => {
+    pick.classList.toggle('is-selected', pick.dataset.bet === selectedBet)
   })
 }
 
@@ -127,6 +183,14 @@ function launchButtonShow() {
 }
 
 function runMeasurement() {
+  if (points <= 0) {
+    points = 1000
+    updatePoints()
+    betResult.textContent = 'Fresh 1000 points. DODO mercy.'
+  }
+
+  const stake = clampStake()
+  const bet = selectedBet
   cancelAnimationFrame(measureFrame)
   launchButtonShow()
 
@@ -149,7 +213,14 @@ function runMeasurement() {
       return
     }
 
-    updateMeter(target)
+    const result = updateMeter(target)
+    const won = result === bet
+    points += won ? stake * 3 : -stake
+    points = Math.max(0, points)
+    updatePoints()
+    betResult.textContent = won
+      ? `Won ${stake * 3} points on ${result}.`
+      : `Lost ${stake} points. Result: ${result}.`
     button.disabled = false
     button.textContent = 'Measure'
     launchButtonShow()
@@ -190,10 +261,15 @@ function animate() {
 }
 
 button.addEventListener('click', runMeasurement)
+stakeInput.addEventListener('change', clampStake)
+betPicks.forEach((pick) => {
+  pick.addEventListener('click', () => setSelectedBet(pick.dataset.bet))
+})
 window.addEventListener('resize', resizeCanvas)
 
 resizeCanvas()
 updateMeter(1)
+updatePoints()
 animate()
 
 setTimeout(launchButtonShow, 600)
