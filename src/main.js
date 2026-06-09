@@ -5,7 +5,7 @@ document.querySelector('#app').innerHTML = `
   <main class="page-shell">
     <section class="hero" aria-label="Personal site">
       <p class="intro">
-        Loud rainbows, saturated joy, and one extremely serious DODO button.
+        DODO METER
       </p>
       <button class="dodo-button" type="button">
         Make Great Again
