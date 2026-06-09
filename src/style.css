@@ -461,6 +461,7 @@ input {
 
 .bonus-wheel__disc {
   --bonus-rotation: 1800deg;
+  --bonus-duration: 4000ms;
   position: relative;
   width: clamp(150px, 38vw, 220px);
   aspect-ratio: 1;
@@ -530,7 +531,7 @@ input {
 }
 
 .bonus-wheel.is-visible .bonus-wheel__disc {
-  animation: bonusWheelSpin 1900ms cubic-bezier(0.12, 0.78, 0.18, 1) both;
+  animation: bonusWheelSpin var(--bonus-duration) cubic-bezier(0.12, 0.78, 0.18, 1) both;
 }
 
 .bonus-wheel.is-finished .bonus-wheel__disc {
@@ -714,22 +715,16 @@ input {
 .bonus-meter__top {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 12px;
 }
 
-.bonus-meter__top span,
-.bonus-meter__top strong {
+.bonus-meter__top span {
   color: #ffffff;
   font-size: 12px;
   font-weight: 950;
   line-height: 1;
   text-transform: uppercase;
-}
-
-.bonus-meter__count {
-  color: #fff000;
-  text-shadow: 0 2px 0 #ff006e;
 }
 
 .bonus-meter__track {

@@ -11,7 +11,7 @@ const outcomes = [
   { label: 'Sticker', short: 'Sticker', icon: '/dodo-arrow.webp', multiplier: 100, isSticker: true },
 ]
 
-const bonusHandsNeeded = 5
+const bonusChargeNeeded = 7
 const bonusMultipliers = [
   2, 2, 2, 2, 2, 2, 2, 2,
   3, 3, 3, 3, 3, 3, 3,
@@ -96,7 +96,6 @@ document.querySelector('#app').innerHTML = `
         <div class="bonus-meter" aria-label="Bonus progress">
           <div class="bonus-meter__top">
             <span>Bonus</span>
-            <strong class="bonus-meter__count">0/5</strong>
           </div>
           <div class="bonus-meter__track" aria-hidden="true">
             <span class="bonus-meter__fill"></span>
@@ -121,7 +120,6 @@ const pointsValue = document.querySelector('.points-value')
 const stakeButtons = [...document.querySelectorAll('.stake-coin')]
 const betResult = document.querySelector('.bet-result')
 const bonusMeterFill = document.querySelector('.bonus-meter__fill')
-const bonusMeterCount = document.querySelector('.bonus-meter__count')
 const bonusWheel = document.querySelector('.bonus-wheel')
 const bonusWheelMultiplier = document.querySelector('.bonus-wheel__multiplier')
 const bonusWheelText = document.querySelector('.bonus-wheel__text')
@@ -139,7 +137,7 @@ let displayedPoints = points
 let pointsAnimationTimer = 0
 let winSoundLoopTimer = 0
 let bonusWheelTimer = 0
-let bonusHands = 0
+let bonusCharge = 0
 let selectedStake = 10
 
 function getRandomOutcome(excludedOutcome = null) {
@@ -305,9 +303,8 @@ function updatePoints() {
 }
 
 function updateBonusMeter() {
-  const progress = Math.min(bonusHands / bonusHandsNeeded, 1)
+  const progress = Math.min(bonusCharge / bonusChargeNeeded, 1)
   bonusMeterFill.style.width = `${progress * 100}%`
-  bonusMeterCount.textContent = `${Math.min(bonusHands, bonusHandsNeeded)}/${bonusHandsNeeded}`
 }
 
 function animatePointsTo(targetPoints, onPositiveStep = null) {
@@ -448,11 +445,14 @@ function playBonusWheelSound() {
 }
 
 function showBonusWheel(multiplier) {
+  const revealDelay = 3000 + Math.random() * 2000
+
   window.clearTimeout(bonusWheelTimer)
   bonusWheelMultiplier.textContent = '?'
   bonusWheelText.textContent = 'Bonus wheel spinning...'
   bonusWheel.classList.remove('is-visible', 'is-finished')
   bonusWheel.style.setProperty('--bonus-rotation', `${1440 + Math.random() * 720}deg`)
+  bonusWheel.style.setProperty('--bonus-duration', `${revealDelay}ms`)
   bonusWheel.offsetHeight
   bonusWheel.classList.add('is-visible')
   playBonusWheelSound()
@@ -464,7 +464,7 @@ function showBonusWheel(multiplier) {
       bonusWheel.classList.add('is-finished')
       launchDoDoCoins()
       resolve()
-    }, 1900)
+    }, revealDelay)
   })
 }
 
@@ -624,13 +624,13 @@ function spinSlots() {
     slotReels.forEach((reel) => reel.classList.remove('is-spinning'))
     slotReels.forEach((reel) => reel.classList.remove('is-dramatic'))
     settleBet(spinResult, stake).then(async () => {
-      bonusHands += 1
+      bonusCharge += Math.random() < 0.5 ? 0 : 1
       updateBonusMeter()
 
-      if (bonusHands >= bonusHandsNeeded) {
+      if (bonusCharge >= bonusChargeNeeded) {
         await new Promise((resolve) => setTimeout(resolve, 520))
         await playBonusGame(stake)
-        bonusHands = 0
+        bonusCharge = 0
         updateBonusMeter()
       }
 
