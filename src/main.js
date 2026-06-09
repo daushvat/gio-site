@@ -3,19 +3,12 @@ import './style.css'
 document.querySelector('#app').innerHTML = `
   <canvas class="fireworks" aria-hidden="true"></canvas>
   <main class="page-shell">
-    <section class="hero" aria-label="Gio personal site">
-      <div class="rainbow-orbit" aria-hidden="true"></div>
-      <div class="portrait-wrap">
-        <img class="portrait" src="/gio-photo.jpg" alt="Gio" />
-        <div class="portrait-fallback" aria-hidden="true">GIO</div>
-      </div>
-      <p class="eyebrow">gio.davushvat.com</p>
-      <h1>Gio in full color.</h1>
+    <section class="hero" aria-label="Personal site">
       <p class="intro">
         Loud rainbows, saturated joy, and one extremely serious DODO button.
       </p>
       <button class="dodo-button" type="button">
-        Make Gio Great Again
+        Make Great Again
       </button>
     </section>
   </main>
@@ -24,7 +17,6 @@ document.querySelector('#app').innerHTML = `
 const canvas = document.querySelector('.fireworks')
 const context = canvas.getContext('2d')
 const button = document.querySelector('.dodo-button')
-const portrait = document.querySelector('.portrait')
 const particles = []
 const colors = ['#ff1744', '#ff9100', '#ffea00', '#00e676', '#00b0ff', '#651fff', '#ff00cc']
 let width = 0
@@ -100,10 +92,6 @@ function animate() {
   context.shadowBlur = 0
   animationFrame = requestAnimationFrame(animate)
 }
-
-portrait.addEventListener('error', () => {
-  portrait.hidden = true
-})
 
 button.addEventListener('click', launchButtonShow)
 window.addEventListener('resize', resizeCanvas)
