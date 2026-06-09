@@ -260,6 +260,15 @@ input {
   animation: reelPulse 110ms linear infinite;
 }
 
+.slot-reel.is-dramatic .reel-symbol {
+  animation-duration: 420ms;
+  color: #ff006e;
+  text-shadow:
+    0 2px 0 #ffffff,
+    0 5px 0 rgba(255, 240, 0, 0.64),
+    0 0 18px rgba(255, 0, 110, 0.8);
+}
+
 .slot-reel.is-locked {
   border-color: #fff000;
   box-shadow:

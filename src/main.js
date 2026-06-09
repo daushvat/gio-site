@@ -17,11 +17,11 @@ document.querySelector('#app').innerHTML = `
         <div class="slot-topper">
           <img class="slot-sticker" src="/dodo-arrow.webp" alt="" aria-hidden="true">
           <div class="slot-sign">
-            <span class="slot-kicker">Lucky measure</span>
+            <span class="slot-kicker">Match 3 to win</span>
             <strong class="slot-result-label">DODO</strong>
           </div>
           <div class="score-chip">
-            <span class="score-value">1%</span>
+            <span class="score-value">x3</span>
           </div>
         </div>
 
@@ -76,7 +76,7 @@ document.querySelector('#app').innerHTML = `
             )
             .join('')}
         </div>
-        <p class="bet-result" aria-live="polite">Pick a result and spin.</p>
+        <p class="bet-result" aria-live="polite">Triple match wins. Lucky pick boosts the jackpot.</p>
       </div>
 
       <button class="dodo-button" type="button">Spin</button>
@@ -121,6 +121,31 @@ function getDodoOutcome(value) {
   }
 
   return outcomes[3]
+}
+
+function getRandomOutcome(excludedOutcome = null) {
+  const choices = excludedOutcome
+    ? outcomes.filter((outcome) => outcome.label !== excludedOutcome.label)
+    : outcomes
+
+  return choices[Math.floor(Math.random() * choices.length)]
+}
+
+function getRandomValueForOutcome(outcome) {
+  const [min, max] = outcome.range.split('-').map(Number)
+  return min + Math.floor(Math.random() * (max - min + 1))
+}
+
+function createSpinResult() {
+  const matchOutcome = getRandomOutcome()
+  const isJackpot = Math.random() < 0.3
+  const finalOutcome = isJackpot ? matchOutcome : getRandomOutcome(matchOutcome)
+
+  return {
+    isJackpot,
+    reels: [matchOutcome, matchOutcome, finalOutcome],
+    percent: getRandomValueForOutcome(finalOutcome),
+  }
 }
 
 function setReelSymbol(index, outcome, isLocked = false) {
@@ -183,6 +208,15 @@ function playWinSound() {
 
 function playMissSound() {
   playTone({ frequency: 240, slideTo: 120, duration: 0.22, type: 'sawtooth', volume: 0.065 })
+}
+
+function playSuspenseSound() {
+  const notes = [220, 248, 278, 312, 350]
+  notes.forEach((frequency, index) => {
+    setTimeout(() => {
+      playTone({ frequency, slideTo: frequency * 1.04, duration: 0.16, type: 'triangle', volume: 0.055 })
+    }, index * 120)
+  })
 }
 
 function updateResult(value) {
@@ -257,15 +291,18 @@ function launchButtonShow() {
   setTimeout(() => launchFirework(width * 0.75, height * 0.32), 320)
 }
 
-function settleBet(outcome, stake, bet) {
-  const won = outcome.label === bet
+function settleBet(spinResult, stake, bet) {
+  const [firstReel, secondReel, thirdReel] = spinResult.reels
+  const won = firstReel.label === secondReel.label && secondReel.label === thirdReel.label
+  const luckyPick = won && thirdReel.label === bet
+  const payout = luckyPick ? stake * 5 : stake * 3
 
-  points += won ? stake * 3 : -stake
+  points += won ? payout : -stake
   points = Math.max(0, points)
   updatePoints()
   betResult.textContent = won
-    ? `Jackpot. Won ${stake * 3} points on ${outcome.label}.`
-    : `Missed. Lost ${stake} points. Result: ${outcome.label}.`
+    ? `${luckyPick ? 'Lucky jackpot' : 'Jackpot'}. Won ${payout} points on ${thirdReel.label}.`
+    : `Near miss. Lost ${stake} points. ${firstReel.short} ${secondReel.short} ${thirdReel.short}.`
 
   if (won) {
     playWinSound()
@@ -285,20 +322,21 @@ function spinSlots() {
 
   const stake = clampStake()
   const bet = selectedBet
-  const target = 1 + Math.floor(Math.random() * 100)
-  const targetOutcome = getDodoOutcome(target)
-  const duration = 2200
+  const spinResult = createSpinResult()
+  const duration = 3200
   const start = performance.now()
-  const lockTimes = [0.62, 0.78, 0.94]
+  const lockTimes = [0.42, 0.58, 1]
   const lockedReels = [false, false, false]
+  let suspenseStarted = false
 
   cancelAnimationFrame(spinFrame)
   getAudioContext()
   button.disabled = true
   button.textContent = 'Spinning...'
-  betResult.textContent = 'Reels are running.'
+  betResult.textContent = 'First two lock, third decides.'
   slotReels.forEach((reel) => reel.classList.add('is-spinning'))
   slotReels.forEach((reel) => reel.classList.remove('is-locked'))
+  slotReels.forEach((reel) => reel.classList.remove('is-dramatic'))
   lastTickSound = 0
   playSpinStartSound()
   launchButtonShow()
@@ -306,7 +344,7 @@ function spinSlots() {
   function tick(now) {
     const progress = Math.min((now - start) / duration, 1)
     const easedProgress = 1 - (1 - progress) ** 3
-    const liveValue = 1 + (target - 1) * easedProgress
+    const liveValue = 1 + (spinResult.percent - 1) * easedProgress
 
     updateResult(liveValue)
 
@@ -317,16 +355,30 @@ function spinSlots() {
           playReelStopSound(index)
         }
 
-        setReelSymbol(index, targetOutcome, true)
+        setReelSymbol(index, spinResult.reels[index], true)
         slotReels[index].classList.remove('is-spinning')
+        slotReels[index].classList.remove('is-dramatic')
         return
       }
 
-      const spinIndex = Math.floor((now / (70 + index * 18)) + index) % outcomes.length
+      if (index === 2 && lockedReels[0] && lockedReels[1]) {
+        slotReels[index].classList.add('is-dramatic')
+
+        if (!suspenseStarted) {
+          suspenseStarted = true
+          betResult.textContent = 'Two match. Third reel deciding...'
+          playSuspenseSound()
+        }
+      }
+
+      const isDramaticThird = index === 2 && lockedReels[0] && lockedReels[1]
+      const reelDelay = isDramaticThird ? 230 : 70 + index * 18
+      const spinIndex = Math.floor((now / reelDelay) + index) % outcomes.length
       symbol.textContent = outcomes[spinIndex].short
     })
 
-    if (now - lastTickSound > 78 && lockedReels.some((isLocked) => !isLocked)) {
+    const tickDelay = lockedReels[0] && lockedReels[1] ? 190 : 78
+    if (now - lastTickSound > tickDelay && lockedReels.some((isLocked) => !isLocked)) {
       lastTickSound = now
       playTickSound()
     }
@@ -336,10 +388,11 @@ function spinSlots() {
       return
     }
 
-    updateResult(target)
-    reelSymbols.forEach((_, index) => setReelSymbol(index, targetOutcome, true))
+    updateResult(spinResult.percent)
+    reelSymbols.forEach((_, index) => setReelSymbol(index, spinResult.reels[index], true))
     slotReels.forEach((reel) => reel.classList.remove('is-spinning'))
-    settleBet(targetOutcome, stake, bet)
+    slotReels.forEach((reel) => reel.classList.remove('is-dramatic'))
+    settleBet(spinResult, stake, bet)
     button.disabled = false
     button.textContent = 'Spin'
   }
