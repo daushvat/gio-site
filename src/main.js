@@ -15,7 +15,7 @@ document.querySelector('#app').innerHTML = `
   <canvas class="fireworks" aria-hidden="true"></canvas>
   <main class="page-shell">
     <section class="slot-shell" aria-label="Emoji slot machine">
-      <p class="intro">EMOJI SLOT</p>
+      <p class="intro">DOYLO SLOT</p>
 
       <div class="slot-machine">
         <div class="slot-topper">
