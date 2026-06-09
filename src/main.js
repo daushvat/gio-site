@@ -102,6 +102,8 @@ let width = 0
 let height = 0
 let animationFrame = 0
 let spinFrame = 0
+let audioContext = null
+let lastTickSound = 0
 let points = 1000
 let selectedBet = 'DODO'
 
@@ -121,13 +123,66 @@ function getDodoOutcome(value) {
   return outcomes[3]
 }
 
-function getRandomOutcome() {
-  return outcomes[Math.floor(Math.random() * outcomes.length)]
-}
-
 function setReelSymbol(index, outcome, isLocked = false) {
   reelSymbols[index].textContent = outcome.short
   slotReels[index].classList.toggle('is-locked', isLocked)
+}
+
+function getAudioContext() {
+  if (!audioContext) {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)()
+  }
+
+  if (audioContext.state === 'suspended') {
+    audioContext.resume()
+  }
+
+  return audioContext
+}
+
+function playTone({ frequency, duration = 0.08, type = 'square', volume = 0.08, slideTo = frequency }) {
+  const audio = getAudioContext()
+  const oscillator = audio.createOscillator()
+  const gain = audio.createGain()
+  const start = audio.currentTime
+  const end = start + duration
+
+  oscillator.type = type
+  oscillator.frequency.setValueAtTime(frequency, start)
+  oscillator.frequency.exponentialRampToValueAtTime(Math.max(slideTo, 1), end)
+  gain.gain.setValueAtTime(0.0001, start)
+  gain.gain.exponentialRampToValueAtTime(volume, start + 0.01)
+  gain.gain.exponentialRampToValueAtTime(0.0001, end)
+
+  oscillator.connect(gain)
+  gain.connect(audio.destination)
+  oscillator.start(start)
+  oscillator.stop(end + 0.02)
+}
+
+function playSpinStartSound() {
+  playTone({ frequency: 150, slideTo: 520, duration: 0.18, type: 'sawtooth', volume: 0.07 })
+}
+
+function playTickSound() {
+  playTone({ frequency: 760, slideTo: 420, duration: 0.035, type: 'square', volume: 0.045 })
+}
+
+function playReelStopSound(index) {
+  playTone({ frequency: 300 + index * 95, slideTo: 190 + index * 70, duration: 0.1, type: 'triangle', volume: 0.08 })
+}
+
+function playWinSound() {
+  const notes = [420, 560, 700, 940]
+  notes.forEach((frequency, index) => {
+    setTimeout(() => {
+      playTone({ frequency, slideTo: frequency * 1.12, duration: 0.13, type: 'triangle', volume: 0.1 })
+    }, index * 90)
+  })
+}
+
+function playMissSound() {
+  playTone({ frequency: 240, slideTo: 120, duration: 0.22, type: 'sawtooth', volume: 0.065 })
 }
 
 function updateResult(value) {
@@ -213,8 +268,12 @@ function settleBet(outcome, stake, bet) {
     : `Missed. Lost ${stake} points. Result: ${outcome.label}.`
 
   if (won) {
+    playWinSound()
     launchButtonShow()
+    return
   }
+
+  playMissSound()
 }
 
 function spinSlots() {
@@ -231,13 +290,17 @@ function spinSlots() {
   const duration = 2200
   const start = performance.now()
   const lockTimes = [0.62, 0.78, 0.94]
+  const lockedReels = [false, false, false]
 
   cancelAnimationFrame(spinFrame)
+  getAudioContext()
   button.disabled = true
   button.textContent = 'Spinning...'
   betResult.textContent = 'Reels are running.'
   slotReels.forEach((reel) => reel.classList.add('is-spinning'))
   slotReels.forEach((reel) => reel.classList.remove('is-locked'))
+  lastTickSound = 0
+  playSpinStartSound()
   launchButtonShow()
 
   function tick(now) {
@@ -249,6 +312,11 @@ function spinSlots() {
 
     reelSymbols.forEach((symbol, index) => {
       if (progress >= lockTimes[index]) {
+        if (!lockedReels[index]) {
+          lockedReels[index] = true
+          playReelStopSound(index)
+        }
+
         setReelSymbol(index, targetOutcome, true)
         slotReels[index].classList.remove('is-spinning')
         return
@@ -257,6 +325,11 @@ function spinSlots() {
       const spinIndex = Math.floor((now / (70 + index * 18)) + index) % outcomes.length
       symbol.textContent = outcomes[spinIndex].short
     })
+
+    if (now - lastTickSound > 78 && lockedReels.some((isLocked) => !isLocked)) {
+      lastTickSound = now
+      playTickSound()
+    }
 
     if (progress < 1) {
       spinFrame = requestAnimationFrame(tick)
