@@ -96,17 +96,19 @@ function resizeCanvas() {
 }
 
 function launchFirework(x, y) {
-  for (let i = 0; i < 95; i += 1) {
-    const angle = (Math.PI * 2 * i) / 95
-    const speed = 2.5 + Math.random() * 7
+  const particleCount = 32
+
+  for (let i = 0; i < particleCount; i += 1) {
+    const angle = (Math.PI * 2 * i) / particleCount
+    const speed = 2 + Math.random() * 5
     particles.push({
       x,
       y,
       vx: Math.cos(angle) * speed,
       vy: Math.sin(angle) * speed,
-      life: 70 + Math.random() * 35,
-      maxLife: 105,
-      size: 2 + Math.random() * 4,
+      life: 48 + Math.random() * 24,
+      maxLife: 72,
+      size: 2 + Math.random() * 3,
       color: colors[Math.floor(Math.random() * colors.length)],
     })
   }
@@ -118,9 +120,7 @@ function launchButtonShow() {
   const originY = rect.top + rect.height / 2
   launchFirework(originX, originY)
 
-  setTimeout(() => launchFirework(width * 0.25, height * 0.28), 170)
-  setTimeout(() => launchFirework(width * 0.75, height * 0.34), 300)
-  setTimeout(() => launchFirework(width * 0.5, height * 0.18), 440)
+  setTimeout(() => launchFirework(width * 0.72, height * 0.3), 240)
 }
 
 function runMeasurement() {
@@ -175,7 +175,7 @@ function animate() {
     context.globalAlpha = Math.max(opacity, 0)
     context.fillStyle = particle.color
     context.shadowColor = particle.color
-    context.shadowBlur = 18
+    context.shadowBlur = 10
     context.beginPath()
     context.arc(particle.x, particle.y, particle.size * opacity, 0, Math.PI * 2)
     context.fill()
