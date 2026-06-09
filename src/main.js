@@ -16,22 +16,19 @@ document.querySelector('#app').innerHTML = `
           <div class="meter-fill"></div>
         </div>
       </div>
-      <div class="dodo-chart" aria-label="DODO meter chart">
-        <div class="chart-segment is-active" data-min="1" data-max="25">
-          <span>DODO</span>
-          <strong>1-25%</strong>
+      <div class="dodo-wheel" aria-label="DODO meter wheel">
+        <div class="wheel-arrow" aria-hidden="true"></div>
+        <div class="wheel-square is-active" data-min="1" data-max="25" data-angle="-135">
+          DODO
         </div>
-        <div class="chart-segment" data-min="26" data-max="50">
-          <span>BIG DODO</span>
-          <strong>25-50%</strong>
+        <div class="wheel-square" data-min="26" data-max="50" data-angle="-45">
+          BIG DODO
         </div>
-        <div class="chart-segment" data-min="51" data-max="75">
-          <span>DODOLA</span>
-          <strong>50-75%</strong>
+        <div class="wheel-square" data-min="51" data-max="75" data-angle="135">
+          DODOLA
         </div>
-        <div class="chart-segment" data-min="76" data-max="100">
-          <span>DODOLA YLE</span>
-          <strong>75-100%</strong>
+        <div class="wheel-square" data-min="76" data-max="100" data-angle="45">
+          DODOLA YLE
         </div>
       </div>
       <button class="dodo-button" type="button">
@@ -47,7 +44,8 @@ const button = document.querySelector('.dodo-button')
 const meterValue = document.querySelector('.meter-value')
 const meterLabel = document.querySelector('.meter-label')
 const meterFill = document.querySelector('.meter-fill')
-const chartSegments = [...document.querySelectorAll('.chart-segment')]
+const wheelArrow = document.querySelector('.wheel-arrow')
+const wheelSquares = [...document.querySelectorAll('.wheel-square')]
 const particles = []
 const colors = ['#ff1744', '#ff9100', '#ffea00', '#00e676', '#00b0ff', '#651fff', '#ff00cc']
 let width = 0
@@ -77,10 +75,15 @@ function updateMeter(value) {
   meterLabel.textContent = getDodoLabel(roundedValue)
   meterFill.style.width = `${roundedValue}%`
 
-  chartSegments.forEach((segment) => {
-    const min = Number(segment.dataset.min)
-    const max = Number(segment.dataset.max)
-    segment.classList.toggle('is-active', roundedValue >= min && roundedValue <= max)
+  wheelSquares.forEach((square) => {
+    const min = Number(square.dataset.min)
+    const max = Number(square.dataset.max)
+    const isActive = roundedValue >= min && roundedValue <= max
+    square.classList.toggle('is-active', isActive)
+
+    if (isActive) {
+      wheelArrow.style.transform = `translate(-50%, -50%) rotate(${square.dataset.angle}deg)`
+    }
   })
 }
 

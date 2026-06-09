@@ -174,26 +174,36 @@ button {
   transition: width 80ms linear;
 }
 
-.dodo-chart {
-  width: min(100%, 620px);
+.dodo-wheel {
+  position: relative;
+  width: min(100%, 360px);
+  aspect-ratio: 1;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 12px;
+  border: 3px solid rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  background: rgba(8, 0, 21, 0.42);
+  box-shadow:
+    0 0 0 8px rgba(255, 255, 255, 0.1),
+    0 20px 46px rgba(0, 0, 0, 0.4);
 }
 
-.chart-segment {
-  min-height: 86px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 12px 10px;
+.wheel-square {
+  min-width: 0;
+  display: grid;
+  place-items: center;
+  padding: 12px;
   border: 2px solid rgba(255, 255, 255, 0.58);
   border-radius: 8px;
-  background: rgba(8, 0, 21, 0.5);
+  background: rgba(8, 0, 21, 0.58);
   color: #ffffff;
-  opacity: 0.72;
-  transform: translateY(0);
+  font-size: clamp(13px, 3.3vw, 18px);
+  font-weight: 950;
+  line-height: 1.05;
+  text-transform: uppercase;
+  opacity: 0.74;
   transition:
     opacity 160ms ease,
     transform 160ms ease,
@@ -201,27 +211,58 @@ button {
     background 160ms ease;
 }
 
-.chart-segment span {
-  font-size: 13px;
-  font-weight: 950;
-  line-height: 1.05;
-  text-transform: uppercase;
-}
-
-.chart-segment strong {
-  color: #fff000;
-  font-size: 12px;
-  font-weight: 950;
-}
-
-.chart-segment.is-active {
+.wheel-square.is-active {
   border-color: #ffffff;
-  background: linear-gradient(135deg, rgba(255, 0, 110, 0.76), rgba(0, 213, 255, 0.7));
+  background: linear-gradient(135deg, rgba(255, 0, 110, 0.82), rgba(0, 213, 255, 0.76));
   opacity: 1;
-  transform: translateY(-4px);
+  transform: scale(1.04);
   box-shadow:
     0 0 0 4px rgba(255, 255, 255, 0.16),
-    0 18px 36px rgba(0, 0, 0, 0.38);
+    0 14px 30px rgba(0, 0, 0, 0.36);
+}
+
+.wheel-arrow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 3;
+  width: 34%;
+  height: 8px;
+  border-radius: 999px;
+  background: #fff000;
+  box-shadow:
+    0 0 0 3px #ff006e,
+    0 0 22px rgba(255, 240, 0, 0.86);
+  transform: translate(-50%, -50%) rotate(-45deg);
+  transform-origin: 50% 50%;
+  transition: transform 180ms ease;
+}
+
+.wheel-arrow::before {
+  content: "";
+  position: absolute;
+  right: -12px;
+  top: 50%;
+  width: 0;
+  height: 0;
+  border-top: 13px solid transparent;
+  border-bottom: 13px solid transparent;
+  border-left: 22px solid #fff000;
+  transform: translateY(-50%);
+  filter: drop-shadow(3px 0 0 #ff006e);
+}
+
+.wheel-arrow::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 26px;
+  height: 26px;
+  border: 4px solid #ffffff;
+  border-radius: 50%;
+  background: #120024;
+  transform: translate(-50%, -50%);
 }
 
 .dodo-button {
@@ -303,8 +344,10 @@ button {
     text-align: left;
   }
 
-  .dodo-chart {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .dodo-wheel {
+    width: min(100%, 300px);
+    gap: 8px;
+    padding: 10px;
   }
 
   .dodo-button {
