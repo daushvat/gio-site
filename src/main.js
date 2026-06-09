@@ -218,12 +218,14 @@ function updatePoints() {
   updateStakeLimit()
 }
 
-function animatePointsTo(targetPoints) {
+function animatePointsTo(targetPoints, onPositiveStep = null) {
   window.clearTimeout(pointsAnimationTimer)
   updateStakeLimit()
 
   return new Promise((resolve) => {
     const target = Math.max(0, targetPoints)
+    const startsIncreasing = target > displayedPoints
+    let positiveSteps = 0
 
     function count() {
       if (displayedPoints === target) {
@@ -233,6 +235,11 @@ function animatePointsTo(targetPoints) {
 
       displayedPoints += displayedPoints < target ? 1 : -1
       updatePointsDisplay()
+
+      if (startsIncreasing && onPositiveStep) {
+        positiveSteps += 1
+        onPositiveStep(positiveSteps)
+      }
 
       const remaining = Math.abs(target - displayedPoints)
       const delay = remaining > 2000 ? 1 : remaining > 500 ? 2 : 8
@@ -344,7 +351,15 @@ async function settleBet(spinResult, stake) {
     playWinSound()
     showWinBurst(thirdReel)
     launchButtonShow()
-    await animatePointsTo(points)
+    let coinBursts = 0
+    await animatePointsTo(points, (positiveSteps) => {
+      if (positiveSteps % 18 !== 0 || coinBursts >= 18) {
+        return
+      }
+
+      coinBursts += 1
+      launchDoDoCoins()
+    })
     return
   }
 
