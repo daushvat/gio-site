@@ -41,6 +41,10 @@ document.querySelector('#app').innerHTML = `
           <span></span>
         </div>
 
+        <div class="win-burst" aria-hidden="true">
+          <span class="win-burst__label">WIN</span>
+          <span class="win-burst__shine"></span>
+        </div>
       </div>
 
       <div class="bet-panel" aria-label="Emoji slot betting controls">
@@ -66,6 +70,7 @@ const button = document.querySelector('.dodo-button')
 const scoreValue = document.querySelector('.score-value')
 const slotReels = [...document.querySelectorAll('.slot-reel')]
 const reelSymbols = [...document.querySelectorAll('.reel-symbol')]
+const winBurst = document.querySelector('.win-burst')
 const pointsValue = document.querySelector('.points-value')
 const stakeInput = document.querySelector('.stake-input')
 const betResult = document.querySelector('.bet-result')
@@ -77,6 +82,7 @@ let animationFrame = 0
 let spinFrame = 0
 let audioContext = null
 let lastTickSound = 0
+let winBurstTimer = 0
 let points = 1000
 
 function getRandomOutcome(excludedOutcome = null) {
@@ -247,6 +253,20 @@ function launchButtonShow() {
   setTimeout(() => launchFirework(width * 0.75, height * 0.32), 320)
 }
 
+function showWinBurst(outcome) {
+  clearTimeout(winBurstTimer)
+  winBurst.classList.remove('is-visible', 'is-sticker-jackpot')
+  winBurst.offsetHeight
+
+  winBurst.classList.toggle('is-sticker-jackpot', outcome.isSticker)
+  winBurst.querySelector('.win-burst__label').textContent = outcome.isSticker ? '100X' : 'WIN'
+  winBurst.classList.add('is-visible')
+
+  winBurstTimer = window.setTimeout(() => {
+    winBurst.classList.remove('is-visible', 'is-sticker-jackpot')
+  }, 1500)
+}
+
 function settleBet(spinResult, stake) {
   const [firstReel, secondReel, thirdReel] = spinResult.reels
   const won = firstReel.label === secondReel.label && secondReel.label === thirdReel.label
@@ -261,6 +281,7 @@ function settleBet(spinResult, stake) {
 
   if (won) {
     playWinSound()
+    showWinBurst(thirdReel)
     launchButtonShow()
     return
   }
@@ -285,6 +306,8 @@ function spinSlots() {
   let secondMissNoted = false
 
   cancelAnimationFrame(spinFrame)
+  clearTimeout(winBurstTimer)
+  winBurst.classList.remove('is-visible', 'is-sticker-jackpot')
   getAudioContext()
   button.disabled = true
   button.textContent = 'Spinning...'
