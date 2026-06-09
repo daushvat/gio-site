@@ -253,6 +253,30 @@ function launchButtonShow() {
   setTimeout(() => launchFirework(width * 0.75, height * 0.32), 320)
 }
 
+function launchDoDoCoins() {
+  const rect = winBurst.getBoundingClientRect()
+  const originX = rect.left + rect.width / 2
+  const originY = rect.top + rect.height / 2
+  const coinCount = 26
+
+  for (let i = 0; i < coinCount; i += 1) {
+    const angle = -Math.PI + (Math.PI * i) / (coinCount - 1)
+    const speed = 4.5 + Math.random() * 5.5
+    particles.push({
+      type: 'coin',
+      x: originX + (Math.random() - 0.5) * 80,
+      y: originY + (Math.random() - 0.5) * 28,
+      vx: Math.cos(angle) * speed + (Math.random() - 0.5) * 2.2,
+      vy: Math.sin(angle) * speed - 5 - Math.random() * 5,
+      life: 78 + Math.random() * 32,
+      maxLife: 110,
+      size: 12 + Math.random() * 9,
+      spin: Math.random() * Math.PI * 2,
+      spinSpeed: (Math.random() - 0.5) * 0.5,
+    })
+  }
+}
+
 function showWinBurst(outcome) {
   clearTimeout(winBurstTimer)
   winBurst.classList.remove('is-visible', 'is-sticker-jackpot')
@@ -261,6 +285,7 @@ function showWinBurst(outcome) {
   winBurst.classList.toggle('is-sticker-jackpot', outcome.isSticker)
   winBurst.querySelector('.win-burst__label').textContent = outcome.isSticker ? '100X' : 'WIN'
   winBurst.classList.add('is-visible')
+  launchDoDoCoins()
 
   winBurstTimer = window.setTimeout(() => {
     winBurst.classList.remove('is-visible', 'is-sticker-jackpot')
@@ -402,6 +427,33 @@ function animate() {
 
     const opacity = particle.life / particle.maxLife
     context.globalAlpha = Math.max(opacity, 0)
+
+    if (particle.type === 'coin') {
+      particle.spin += particle.spinSpeed
+      const coinWidth = Math.max(3, particle.size * Math.abs(Math.cos(particle.spin)))
+
+      context.save()
+      context.translate(particle.x, particle.y)
+      context.rotate(particle.spin * 0.24)
+      context.fillStyle = '#ffd84d'
+      context.strokeStyle = '#fff6b8'
+      context.lineWidth = 2
+      context.shadowColor = '#fff000'
+      context.shadowBlur = 18
+      context.beginPath()
+      context.ellipse(0, 0, coinWidth, particle.size, 0, 0, Math.PI * 2)
+      context.fill()
+      context.stroke()
+      context.shadowBlur = 0
+      context.fillStyle = '#9b5a00'
+      context.font = `900 ${Math.max(10, particle.size * 0.72)}px Inter, sans-serif`
+      context.textAlign = 'center'
+      context.textBaseline = 'middle'
+      context.fillText('D', 0, 1)
+      context.restore()
+      continue
+    }
+
     context.fillStyle = particle.color
     context.shadowColor = particle.color
     context.shadowBlur = 10
