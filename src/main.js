@@ -89,13 +89,22 @@ function getRandomOutcome(excludedOutcome = null) {
 }
 
 function createSpinResult() {
-  const matchOutcome = getRandomOutcome()
+  const firstOutcome = getRandomOutcome()
+  const secondMisses = Math.random() < 0.3
+
+  if (secondMisses) {
+    return {
+      isJackpot: false,
+      reels: [firstOutcome, getRandomOutcome(firstOutcome), getRandomOutcome()],
+    }
+  }
+
   const isJackpot = Math.random() < 0.3
-  const finalOutcome = isJackpot ? matchOutcome : getRandomOutcome(matchOutcome)
+  const finalOutcome = isJackpot ? firstOutcome : getRandomOutcome(firstOutcome)
 
   return {
     isJackpot,
-    reels: [matchOutcome, matchOutcome, finalOutcome],
+    reels: [firstOutcome, firstOutcome, finalOutcome],
   }
 }
 
@@ -263,12 +272,13 @@ function spinSlots() {
   const lockTimes = [0.42, 0.58, 1]
   const lockedReels = [false, false, false]
   let suspenseStarted = false
+  let secondMissNoted = false
 
   cancelAnimationFrame(spinFrame)
   getAudioContext()
   button.disabled = true
   button.textContent = 'Spinning...'
-  betResult.textContent = 'First two lock, third decides.'
+  betResult.textContent = 'Reels lock one by one.'
   slotReels.forEach((reel) => reel.classList.add('is-spinning'))
   slotReels.forEach((reel) => reel.classList.remove('is-locked'))
   slotReels.forEach((reel) => reel.classList.remove('is-dramatic'))
@@ -294,7 +304,14 @@ function spinSlots() {
         return
       }
 
-      if (index === 2 && lockedReels[0] && lockedReels[1]) {
+      const firstTwoMatch = spinResult.reels[0].label === spinResult.reels[1].label
+
+      if (lockedReels[0] && lockedReels[1] && !firstTwoMatch && !secondMissNoted) {
+        secondMissNoted = true
+        betResult.textContent = 'Second reel missed. No triple this spin.'
+      }
+
+      if (index === 2 && lockedReels[0] && lockedReels[1] && firstTwoMatch) {
         slotReels[index].classList.add('is-dramatic')
 
         if (!suspenseStarted) {
@@ -304,13 +321,14 @@ function spinSlots() {
         }
       }
 
-      const isDramaticThird = index === 2 && lockedReels[0] && lockedReels[1]
+      const isDramaticThird = index === 2 && lockedReels[0] && lockedReels[1] && firstTwoMatch
       const reelDelay = isDramaticThird ? 230 : 70 + index * 18
       const spinIndex = Math.floor((now / reelDelay) + index) % outcomes.length
       symbol.textContent = outcomes[spinIndex].short
     })
 
-    const tickDelay = lockedReels[0] && lockedReels[1] ? 190 : 78
+    const firstTwoLockedMatch = lockedReels[0] && lockedReels[1] && spinResult.reels[0].label === spinResult.reels[1].label
+    const tickDelay = firstTwoLockedMatch ? 190 : 78
     if (now - lastTickSound > tickDelay && lockedReels.some((isLocked) => !isLocked)) {
       lastTickSound = now
       playTickSound()
