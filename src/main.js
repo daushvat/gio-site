@@ -1,10 +1,10 @@
 import './style.css'
 
 const outcomes = [
-  { label: 'DODO', short: 'DODO', range: '1-25', icon: 'D' },
-  { label: 'BIG DODO', short: 'BIG', range: '26-50', icon: 'B' },
-  { label: 'DODOLA', short: 'DODOLA', range: '51-75', icon: 'L' },
-  { label: 'DODOLA YLE', short: 'YLE', range: '76-100', icon: 'Y' },
+  { label: 'DODO', short: 'DODO', icon: 'D', multiplier: 2 },
+  { label: 'BIG DODO', short: 'BIG', icon: 'B', multiplier: 3 },
+  { label: 'DODOLA', short: 'DODOLA', icon: 'L', multiplier: 4 },
+  { label: 'DODOLA YLE', short: 'YLE', icon: 'Y', multiplier: 6 },
 ]
 
 document.querySelector('#app').innerHTML = `
@@ -41,15 +41,15 @@ document.querySelector('#app').innerHTML = `
           <span></span>
         </div>
 
-        <div class="slot-ranges" aria-label="Outcome ranges">
+        <div class="slot-payouts" aria-label="Slot payouts">
           ${outcomes
             .map(
               (outcome, index) => `
-                <button class="range-card${index === 0 ? ' is-active' : ''}" type="button" data-bet="${outcome.label}">
-                  <span class="range-icon">${outcome.icon}</span>
+                <div class="payout-card${index === 0 ? ' is-active' : ''}" data-symbol="${outcome.label}">
+                  <span class="payout-icon">${outcome.icon}</span>
                   <strong>${outcome.short}</strong>
-                  <small>${outcome.range}%</small>
-                </button>
+                  <small>x${outcome.multiplier}</small>
+                </div>
               `,
             )
             .join('')}
@@ -63,20 +63,9 @@ document.querySelector('#app').innerHTML = `
         </div>
         <label class="stake-control">
           <span>Bet</span>
-          <input class="stake-input" type="number" min="10" max="1000" step="10" value="100">
+          <input class="stake-input" type="number" min="10" max="50" step="10" value="10">
         </label>
-        <div class="bet-picks" role="group" aria-label="Pick an outcome">
-          ${outcomes
-            .map(
-              (outcome, index) => `
-                <button class="bet-pick${index === 0 ? ' is-selected' : ''}" type="button" data-bet="${outcome.label}">
-                  ${outcome.short}
-                </button>
-              `,
-            )
-            .join('')}
-        </div>
-        <p class="bet-result" aria-live="polite">Triple match wins. Lucky pick boosts the jackpot.</p>
+        <p class="bet-result" aria-live="polite">Bet 10 to 50. Triple match wins the symbol multiplier.</p>
       </div>
 
       <button class="dodo-button" type="button">Spin</button>
@@ -91,10 +80,9 @@ const scoreValue = document.querySelector('.score-value')
 const slotResultLabel = document.querySelector('.slot-result-label')
 const slotReels = [...document.querySelectorAll('.slot-reel')]
 const reelSymbols = [...document.querySelectorAll('.reel-symbol')]
-const rangeCards = [...document.querySelectorAll('.range-card')]
+const payoutCards = [...document.querySelectorAll('.payout-card')]
 const pointsValue = document.querySelector('.points-value')
 const stakeInput = document.querySelector('.stake-input')
-const betPicks = [...document.querySelectorAll('.bet-pick')]
 const betResult = document.querySelector('.bet-result')
 const particles = []
 const colors = ['#ff1744', '#ff9100', '#ffea00', '#00e676', '#00b0ff', '#651fff', '#ff00cc']
@@ -105,23 +93,6 @@ let spinFrame = 0
 let audioContext = null
 let lastTickSound = 0
 let points = 1000
-let selectedBet = 'DODO'
-
-function getDodoOutcome(value) {
-  if (value <= 25) {
-    return outcomes[0]
-  }
-
-  if (value <= 50) {
-    return outcomes[1]
-  }
-
-  if (value <= 75) {
-    return outcomes[2]
-  }
-
-  return outcomes[3]
-}
 
 function getRandomOutcome(excludedOutcome = null) {
   const choices = excludedOutcome
@@ -129,11 +100,6 @@ function getRandomOutcome(excludedOutcome = null) {
     : outcomes
 
   return choices[Math.floor(Math.random() * choices.length)]
-}
-
-function getRandomValueForOutcome(outcome) {
-  const [min, max] = outcome.range.split('-').map(Number)
-  return min + Math.floor(Math.random() * (max - min + 1))
 }
 
 function createSpinResult() {
@@ -144,7 +110,6 @@ function createSpinResult() {
   return {
     isJackpot,
     reels: [matchOutcome, matchOutcome, finalOutcome],
-    percent: getRandomValueForOutcome(finalOutcome),
   }
 }
 
@@ -219,14 +184,11 @@ function playSuspenseSound() {
   })
 }
 
-function updateResult(value) {
-  const roundedValue = Math.max(1, Math.min(100, Math.round(value)))
-  const outcome = getDodoOutcome(roundedValue)
-
-  scoreValue.textContent = `${roundedValue}%`
+function updateResult(outcome) {
+  scoreValue.textContent = `x${outcome.multiplier}`
   slotResultLabel.textContent = outcome.label
-  rangeCards.forEach((card) => {
-    card.classList.toggle('is-active', card.dataset.bet === outcome.label)
+  payoutCards.forEach((card) => {
+    card.classList.toggle('is-active', card.dataset.symbol === outcome.label)
   })
 
   return outcome
@@ -234,24 +196,16 @@ function updateResult(value) {
 
 function updatePoints() {
   pointsValue.textContent = points.toLocaleString()
-  stakeInput.max = String(Math.max(points, 10))
+  stakeInput.max = String(Math.min(Math.max(points, 10), 50))
 }
 
 function clampStake() {
   const rawStake = Number(stakeInput.value)
   const stake = Number.isFinite(rawStake) ? rawStake : 10
-  const maxStake = Math.max(points, 10)
+  const maxStake = Math.min(Math.max(points, 10), 50)
   const clampedStake = Math.max(10, Math.min(maxStake, Math.round(stake / 10) * 10))
   stakeInput.value = String(clampedStake)
   return clampedStake
-}
-
-function setSelectedBet(bet) {
-  selectedBet = bet
-
-  betPicks.forEach((pick) => {
-    pick.classList.toggle('is-selected', pick.dataset.bet === selectedBet)
-  })
 }
 
 function resizeCanvas() {
@@ -291,17 +245,16 @@ function launchButtonShow() {
   setTimeout(() => launchFirework(width * 0.75, height * 0.32), 320)
 }
 
-function settleBet(spinResult, stake, bet) {
+function settleBet(spinResult, stake) {
   const [firstReel, secondReel, thirdReel] = spinResult.reels
   const won = firstReel.label === secondReel.label && secondReel.label === thirdReel.label
-  const luckyPick = won && thirdReel.label === bet
-  const payout = luckyPick ? stake * 5 : stake * 3
+  const payout = stake * thirdReel.multiplier
 
   points += won ? payout : -stake
   points = Math.max(0, points)
   updatePoints()
   betResult.textContent = won
-    ? `${luckyPick ? 'Lucky jackpot' : 'Jackpot'}. Won ${payout} points on ${thirdReel.label}.`
+    ? `Jackpot x${thirdReel.multiplier}. Won ${payout} points on ${thirdReel.label}.`
     : `Near miss. Lost ${stake} points. ${firstReel.short} ${secondReel.short} ${thirdReel.short}.`
 
   if (won) {
@@ -321,7 +274,6 @@ function spinSlots() {
   }
 
   const stake = clampStake()
-  const bet = selectedBet
   const spinResult = createSpinResult()
   const duration = 3200
   const start = performance.now()
@@ -343,10 +295,8 @@ function spinSlots() {
 
   function tick(now) {
     const progress = Math.min((now - start) / duration, 1)
-    const easedProgress = 1 - (1 - progress) ** 3
-    const liveValue = 1 + (spinResult.percent - 1) * easedProgress
 
-    updateResult(liveValue)
+    updateResult(spinResult.reels[2])
 
     reelSymbols.forEach((symbol, index) => {
       if (progress >= lockTimes[index]) {
@@ -388,11 +338,11 @@ function spinSlots() {
       return
     }
 
-    updateResult(spinResult.percent)
+    updateResult(spinResult.reels[2])
     reelSymbols.forEach((_, index) => setReelSymbol(index, spinResult.reels[index], true))
     slotReels.forEach((reel) => reel.classList.remove('is-spinning'))
     slotReels.forEach((reel) => reel.classList.remove('is-dramatic'))
-    settleBet(spinResult, stake, bet)
+    settleBet(spinResult, stake)
     button.disabled = false
     button.textContent = 'Spin'
   }
@@ -433,16 +383,10 @@ function animate() {
 
 button.addEventListener('click', spinSlots)
 stakeInput.addEventListener('change', clampStake)
-betPicks.forEach((pick) => {
-  pick.addEventListener('click', () => setSelectedBet(pick.dataset.bet))
-})
-rangeCards.forEach((card) => {
-  card.addEventListener('click', () => setSelectedBet(card.dataset.bet))
-})
 window.addEventListener('resize', resizeCanvas)
 
 resizeCanvas()
-updateResult(1)
+updateResult(outcomes[0])
 reelSymbols.forEach((_, index) => setReelSymbol(index, outcomes[0], true))
 updatePoints()
 animate()
