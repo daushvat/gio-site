@@ -2,12 +2,13 @@ import './style.css'
 
 const outcomes = [
   { label: 'Money', short: '🤑', icon: '🤑', multiplier: 6 },
-  { label: 'Perfect', short: '👌', icon: '👌', multiplier: 2 },
+  { label: 'OK', short: '👌', icon: '👌', multiplier: 2 },
   { label: 'Middle', short: '🖕', icon: '🖕', multiplier: 4 },
   { label: 'Troll', short: '🧌', icon: '🧌', multiplier: 3 },
   { label: 'Lobster', short: '🦞', icon: '🦞', multiplier: 3 },
   { label: 'Flip', short: '🤸‍♀️', icon: '🤸‍♀️', multiplier: 4 },
   { label: 'Trophy', short: '🏆', icon: '🏆', multiplier: 6 },
+  { label: 'Sticker', short: 'Sticker', icon: '/dodo-arrow.webp', multiplier: 100, isSticker: true },
 ]
 
 document.querySelector('#app').innerHTML = `
@@ -19,10 +20,6 @@ document.querySelector('#app').innerHTML = `
       <div class="slot-machine">
         <div class="slot-topper">
           <img class="slot-sticker" src="/dodo-arrow.webp" alt="" aria-hidden="true">
-          <div class="slot-sign">
-            <span class="slot-kicker">Match 3 to win</span>
-            <strong class="slot-result-label">🤑</strong>
-          </div>
           <div class="score-chip">
             <span class="score-value">x6</span>
           </div>
@@ -55,7 +52,7 @@ document.querySelector('#app').innerHTML = `
           <span>Bet</span>
           <input class="stake-input" type="number" min="10" max="50" step="10" value="10">
         </label>
-        <p class="bet-result" aria-live="polite">Bet 10 to 50. Triple match wins the symbol multiplier.</p>
+        <p class="bet-result" aria-live="polite">Bet 10 to 50. Triple sticker jackpot pays x100.</p>
       </div>
 
       <button class="dodo-button" type="button">Spin</button>
@@ -67,7 +64,6 @@ const canvas = document.querySelector('.fireworks')
 const context = canvas.getContext('2d')
 const button = document.querySelector('.dodo-button')
 const scoreValue = document.querySelector('.score-value')
-const slotResultLabel = document.querySelector('.slot-result-label')
 const slotReels = [...document.querySelectorAll('.slot-reel')]
 const reelSymbols = [...document.querySelectorAll('.reel-symbol')]
 const pointsValue = document.querySelector('.points-value')
@@ -112,7 +108,19 @@ function createSpinResult() {
 }
 
 function setReelSymbol(index, outcome, isLocked = false) {
-  reelSymbols[index].textContent = outcome.short
+  reelSymbols[index].replaceChildren()
+  reelSymbols[index].classList.toggle('has-sticker-symbol', outcome.isSticker)
+
+  if (outcome.isSticker) {
+    const image = document.createElement('img')
+    image.src = outcome.icon
+    image.alt = outcome.label
+    image.decoding = 'async'
+    reelSymbols[index].append(image)
+  } else {
+    reelSymbols[index].textContent = outcome.short
+  }
+
   slotReels[index].classList.toggle('is-locked', isLocked)
 }
 
@@ -184,7 +192,6 @@ function playSuspenseSound() {
 
 function updateResult(outcome) {
   scoreValue.textContent = `x${outcome.multiplier}`
-  slotResultLabel.textContent = outcome.label
 
   return outcome
 }
@@ -249,7 +256,7 @@ function settleBet(spinResult, stake) {
   points = Math.max(0, points)
   updatePoints()
   betResult.textContent = won
-    ? `Jackpot x${thirdReel.multiplier}. Won ${payout} points on ${thirdReel.label}.`
+    ? `${thirdReel.isSticker ? 'Sticker jackpot' : 'Jackpot'} x${thirdReel.multiplier}. Won ${payout} points.`
     : `Near miss. Lost ${stake} points. ${firstReel.short} ${secondReel.short} ${thirdReel.short}.`
 
   if (won) {
@@ -327,7 +334,7 @@ function spinSlots() {
       const isDramaticThird = index === 2 && lockedReels[0] && lockedReels[1] && firstTwoMatch
       const reelDelay = isDramaticThird ? 230 : 70 + index * 18
       const spinIndex = Math.floor((now / reelDelay) + index) % outcomes.length
-      symbol.textContent = outcomes[spinIndex].short
+      setReelSymbol(index, outcomes[spinIndex])
     })
 
     const firstTwoLockedMatch = lockedReels[0] && lockedReels[1] && spinResult.reels[0].label === spinResult.reels[1].label
