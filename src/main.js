@@ -1,39 +1,42 @@
 import './style.css'
 
 const outcomes = [
-  { label: 'DODO', short: 'DODO', icon: 'D', multiplier: 2 },
-  { label: 'BIG DODO', short: 'BIG', icon: 'B', multiplier: 3 },
-  { label: 'DODOLA', short: 'DODOLA', icon: 'L', multiplier: 4 },
-  { label: 'DODOLA YLE', short: 'YLE', icon: 'Y', multiplier: 6 },
+  { label: 'Money', short: '🤑', icon: '🤑', multiplier: 6 },
+  { label: 'Perfect', short: '👌', icon: '👌', multiplier: 2 },
+  { label: 'Middle', short: '🖕', icon: '🖕', multiplier: 4 },
+  { label: 'Troll', short: '🧌', icon: '🧌', multiplier: 3 },
+  { label: 'Lobster', short: '🦞', icon: '🦞', multiplier: 3 },
+  { label: 'Flip', short: '🤸‍♀️', icon: '🤸‍♀️', multiplier: 4 },
+  { label: 'Trophy', short: '🏆', icon: '🏆', multiplier: 6 },
 ]
 
 document.querySelector('#app').innerHTML = `
   <canvas class="fireworks" aria-hidden="true"></canvas>
   <main class="page-shell">
-    <section class="slot-shell" aria-label="DODO slot machine">
-      <p class="intro">DODO SLOT</p>
+    <section class="slot-shell" aria-label="Emoji slot machine">
+      <p class="intro">EMOJI SLOT</p>
 
       <div class="slot-machine">
         <div class="slot-topper">
           <img class="slot-sticker" src="/dodo-arrow.webp" alt="" aria-hidden="true">
           <div class="slot-sign">
             <span class="slot-kicker">Match 3 to win</span>
-            <strong class="slot-result-label">DODO</strong>
+            <strong class="slot-result-label">🤑</strong>
           </div>
           <div class="score-chip">
-            <span class="score-value">x3</span>
+            <span class="score-value">x6</span>
           </div>
         </div>
 
         <div class="slot-display" aria-live="polite">
           <div class="slot-reel" data-reel="0">
-            <span class="reel-symbol">DODO</span>
+            <span class="reel-symbol">🤑</span>
           </div>
           <div class="slot-reel" data-reel="1">
-            <span class="reel-symbol">DODO</span>
+            <span class="reel-symbol">🤑</span>
           </div>
           <div class="slot-reel" data-reel="2">
-            <span class="reel-symbol">DODO</span>
+            <span class="reel-symbol">🤑</span>
           </div>
         </div>
 
@@ -43,7 +46,7 @@ document.querySelector('#app').innerHTML = `
 
       </div>
 
-      <div class="bet-panel" aria-label="DODO betting controls">
+      <div class="bet-panel" aria-label="Emoji slot betting controls">
         <div class="points-card">
           <span>Points</span>
           <strong class="points-value">1000</strong>
@@ -262,7 +265,7 @@ function spinSlots() {
   if (points <= 0) {
     points = 1000
     updatePoints()
-    betResult.textContent = 'Fresh 1000 points. DODO mercy.'
+    betResult.textContent = 'Fresh 1000 points. Emoji mercy.'
   }
 
   const stake = clampStake()
