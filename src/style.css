@@ -438,41 +438,12 @@ input {
   text-transform: uppercase;
 }
 
-.points-balance {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
-.points-value {
+.points-card strong {
   color: #fff000;
   font-size: 30px;
   font-weight: 950;
   line-height: 1;
   text-shadow: 0 3px 0 #ff006e;
-}
-
-.dodo-coin-sign {
-  width: 28px;
-  height: 28px;
-  display: inline-grid;
-  flex: 0 0 auto;
-  place-items: center;
-  border: 2px solid rgba(255, 246, 184, 0.96);
-  border-radius: 999px;
-  background:
-    radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.92), transparent 24%),
-    linear-gradient(145deg, #754000, #ffb300 42%, #fff6b8 58%, #9b5a00);
-  color: #3c1d00;
-  box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.7),
-    inset 0 -7px 10px rgba(107, 54, 0, 0.34),
-    0 0 18px rgba(255, 240, 0, 0.58);
-  font-size: 16px;
-  font-weight: 950;
-  line-height: 1;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.52);
 }
 
 .stake-coins {
