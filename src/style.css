@@ -281,6 +281,10 @@ button {
   transition: transform 180ms ease;
 }
 
+.wheel-arrow.is-spinning {
+  transition: none;
+}
+
 .wheel-arrow::before {
   content: "";
   position: absolute;

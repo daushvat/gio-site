@@ -82,6 +82,7 @@ let animationFrame = 0
 let measureFrame = 0
 let points = 1000
 let selectedBet = 'DODO'
+let arrowRotation = -135
 
 function getDodoLabel(value) {
   if (value <= 25) {
@@ -99,24 +100,41 @@ function getDodoLabel(value) {
   return 'DODOLA YLE'
 }
 
-function updateMeter(value) {
+function getWheelSquareForValue(value) {
+  const roundedValue = Math.max(1, Math.min(100, Math.round(value)))
+
+  return wheelSquares.find((square) => {
+    const min = Number(square.dataset.min)
+    const max = Number(square.dataset.max)
+    return roundedValue >= min && roundedValue <= max
+  })
+}
+
+function setArrowRotation(rotation) {
+  arrowRotation = rotation
+  wheelArrow.style.transform = `translate(-50%, -50%) rotate(${arrowRotation}deg)`
+}
+
+function updateWheelSelection(value, shouldMoveArrow = true) {
+  const activeSquare = getWheelSquareForValue(value)
+
+  wheelSquares.forEach((square) => {
+    square.classList.toggle('is-active', square === activeSquare)
+  })
+
+  if (activeSquare && shouldMoveArrow) {
+    setArrowRotation(Number(activeSquare.dataset.angle))
+  }
+}
+
+function updateMeter(value, shouldMoveArrow = true) {
   const roundedValue = Math.max(1, Math.min(100, Math.round(value)))
   const label = getDodoLabel(roundedValue)
   meterValue.textContent = `${roundedValue}%`
   meterLabel.textContent = label
   meterFill.style.width = `${roundedValue}%`
   wheelHub.textContent = roundedValue
-
-  wheelSquares.forEach((square) => {
-    const min = Number(square.dataset.min)
-    const max = Number(square.dataset.max)
-    const isActive = roundedValue >= min && roundedValue <= max
-    square.classList.toggle('is-active', isActive)
-
-    if (isActive) {
-      wheelArrow.style.transform = `translate(-50%, -50%) rotate(${square.dataset.angle}deg)`
-    }
-  })
+  updateWheelSelection(roundedValue, shouldMoveArrow)
 
   return label
 }
@@ -195,24 +213,36 @@ function runMeasurement() {
   launchButtonShow()
 
   const target = 1 + Math.floor(Math.random() * 100)
+  const targetSquare = getWheelSquareForValue(target)
+  const targetAngle = Number(targetSquare.dataset.angle)
+  const startRotation = arrowRotation
+  const currentNormalizedRotation = ((arrowRotation % 360) + 360) % 360
+  const targetNormalizedAngle = ((targetAngle % 360) + 360) % 360
+  const forwardDistance = (targetNormalizedAngle - currentNormalizedRotation + 360) % 360
+  const finalRotation = startRotation + 1440 + forwardDistance
   const duration = 1900
   const start = performance.now()
 
   button.disabled = true
   button.textContent = 'Measuring...'
+  wheelArrow.classList.add('is-spinning')
 
   function tick(now) {
     const progress = Math.min((now - start) / duration, 1)
     const easedProgress = 1 - (1 - progress) ** 3
     const value = 1 + (target - 1) * easedProgress
+    const spinProgress = 1 - (1 - progress) ** 4
 
-    updateMeter(value)
+    updateMeter(value, false)
+    setArrowRotation(startRotation + (finalRotation - startRotation) * spinProgress)
 
     if (progress < 1) {
       measureFrame = requestAnimationFrame(tick)
       return
     }
 
+    setArrowRotation(targetAngle)
+    wheelArrow.classList.remove('is-spinning')
     const result = updateMeter(target)
     const won = result === bet
     points += won ? stake * 3 : -stake
