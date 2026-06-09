@@ -1,42 +1,61 @@
 import './style.css'
 
+const outcomes = [
+  { label: 'DODO', short: 'DODO', range: '1-25', icon: 'D' },
+  { label: 'BIG DODO', short: 'BIG', range: '26-50', icon: 'B' },
+  { label: 'DODOLA', short: 'DODOLA', range: '51-75', icon: 'L' },
+  { label: 'DODOLA YLE', short: 'YLE', range: '76-100', icon: 'Y' },
+]
+
 document.querySelector('#app').innerHTML = `
   <canvas class="fireworks" aria-hidden="true"></canvas>
   <main class="page-shell">
-    <section class="hero" aria-label="Personal site">
-      <p class="intro">
-        DODO METER
-      </p>
-      <div class="meter" aria-live="polite">
-        <div class="meter-readout">
-          <span class="meter-value">1%</span>
-          <span class="meter-label">DODO</span>
+    <section class="slot-shell" aria-label="DODO slot machine">
+      <p class="intro">DODO SLOT</p>
+
+      <div class="slot-machine">
+        <div class="slot-topper">
+          <img class="slot-sticker" src="/dodo-arrow.webp" alt="" aria-hidden="true">
+          <div class="slot-sign">
+            <span class="slot-kicker">Lucky measure</span>
+            <strong class="slot-result-label">DODO</strong>
+          </div>
+          <div class="score-chip">
+            <span class="score-value">1%</span>
+          </div>
         </div>
-        <div class="meter-track" aria-hidden="true">
-          <div class="meter-fill"></div>
+
+        <div class="slot-display" aria-live="polite">
+          <div class="slot-reel" data-reel="0">
+            <span class="reel-symbol">DODO</span>
+          </div>
+          <div class="slot-reel" data-reel="1">
+            <span class="reel-symbol">DODO</span>
+          </div>
+          <div class="slot-reel" data-reel="2">
+            <span class="reel-symbol">DODO</span>
+          </div>
+        </div>
+
+        <div class="payline" aria-hidden="true">
+          <span></span>
+        </div>
+
+        <div class="slot-ranges" aria-label="Outcome ranges">
+          ${outcomes
+            .map(
+              (outcome, index) => `
+                <button class="range-card${index === 0 ? ' is-active' : ''}" type="button" data-bet="${outcome.label}">
+                  <span class="range-icon">${outcome.icon}</span>
+                  <strong>${outcome.short}</strong>
+                  <small>${outcome.range}%</small>
+                </button>
+              `,
+            )
+            .join('')}
         </div>
       </div>
-      <div class="dodo-wheel" aria-label="DODO meter wheel">
-        <div class="wheel-glow" aria-hidden="true"></div>
-        <img class="wheel-arrow" src="/dodo-arrow.webp" alt="" aria-hidden="true">
-        <div class="wheel-hub" aria-hidden="true">?</div>
-        <div class="wheel-square is-active" data-label="DODO" data-min="1" data-max="25" data-angle="-135">
-          <span class="wheel-badge">x1</span>
-          DODO
-        </div>
-        <div class="wheel-square" data-label="BIG DODO" data-min="26" data-max="50" data-angle="-45">
-          <span class="wheel-badge">x2</span>
-          BIG DODO
-        </div>
-        <div class="wheel-square" data-label="DODOLA" data-min="51" data-max="75" data-angle="135">
-          <span class="wheel-badge">x3</span>
-          DODOLA
-        </div>
-        <div class="wheel-square" data-label="DODOLA YLE" data-min="76" data-max="100" data-angle="45">
-          <span class="wheel-badge">x4</span>
-          DODOLA YLE
-        </div>
-      </div>
+
       <div class="bet-panel" aria-label="DODO betting controls">
         <div class="points-card">
           <span>Points</span>
@@ -47,16 +66,20 @@ document.querySelector('#app').innerHTML = `
           <input class="stake-input" type="number" min="10" max="1000" step="10" value="100">
         </label>
         <div class="bet-picks" role="group" aria-label="Pick an outcome">
-          <button class="bet-pick is-selected" type="button" data-bet="DODO">DODO</button>
-          <button class="bet-pick" type="button" data-bet="BIG DODO">BIG</button>
-          <button class="bet-pick" type="button" data-bet="DODOLA">DODOLA</button>
-          <button class="bet-pick" type="button" data-bet="DODOLA YLE">YLE</button>
+          ${outcomes
+            .map(
+              (outcome, index) => `
+                <button class="bet-pick${index === 0 ? ' is-selected' : ''}" type="button" data-bet="${outcome.label}">
+                  ${outcome.short}
+                </button>
+              `,
+            )
+            .join('')}
         </div>
-        <p class="bet-result" aria-live="polite">Pick a square and measure.</p>
+        <p class="bet-result" aria-live="polite">Pick a result and spin.</p>
       </div>
-      <button class="dodo-button" type="button">
-        Measure
-      </button>
+
+      <button class="dodo-button" type="button">Spin</button>
     </section>
   </main>
 `
@@ -64,12 +87,11 @@ document.querySelector('#app').innerHTML = `
 const canvas = document.querySelector('.fireworks')
 const context = canvas.getContext('2d')
 const button = document.querySelector('.dodo-button')
-const meterValue = document.querySelector('.meter-value')
-const meterLabel = document.querySelector('.meter-label')
-const meterFill = document.querySelector('.meter-fill')
-const wheelArrow = document.querySelector('.wheel-arrow')
-const wheelHub = document.querySelector('.wheel-hub')
-const wheelSquares = [...document.querySelectorAll('.wheel-square')]
+const scoreValue = document.querySelector('.score-value')
+const slotResultLabel = document.querySelector('.slot-result-label')
+const slotReels = [...document.querySelectorAll('.slot-reel')]
+const reelSymbols = [...document.querySelectorAll('.reel-symbol')]
+const rangeCards = [...document.querySelectorAll('.range-card')]
 const pointsValue = document.querySelector('.points-value')
 const stakeInput = document.querySelector('.stake-input')
 const betPicks = [...document.querySelectorAll('.bet-pick')]
@@ -79,64 +101,46 @@ const colors = ['#ff1744', '#ff9100', '#ffea00', '#00e676', '#00b0ff', '#651fff'
 let width = 0
 let height = 0
 let animationFrame = 0
-let measureFrame = 0
+let spinFrame = 0
 let points = 1000
 let selectedBet = 'DODO'
-let arrowRotation = -135
 
-function getDodoLabel(value) {
+function getDodoOutcome(value) {
   if (value <= 25) {
-    return 'DODO'
+    return outcomes[0]
   }
 
   if (value <= 50) {
-    return 'BIG DODO'
+    return outcomes[1]
   }
 
   if (value <= 75) {
-    return 'DODOLA'
+    return outcomes[2]
   }
 
-  return 'DODOLA YLE'
+  return outcomes[3]
 }
 
-function getWheelSquareForValue(value) {
+function getRandomOutcome() {
+  return outcomes[Math.floor(Math.random() * outcomes.length)]
+}
+
+function setReelSymbol(index, outcome, isLocked = false) {
+  reelSymbols[index].textContent = outcome.short
+  slotReels[index].classList.toggle('is-locked', isLocked)
+}
+
+function updateResult(value) {
   const roundedValue = Math.max(1, Math.min(100, Math.round(value)))
+  const outcome = getDodoOutcome(roundedValue)
 
-  return wheelSquares.find((square) => {
-    const min = Number(square.dataset.min)
-    const max = Number(square.dataset.max)
-    return roundedValue >= min && roundedValue <= max
-  })
-}
-
-function setArrowRotation(rotation) {
-  arrowRotation = rotation
-  wheelArrow.style.transform = `translate(-50%, -50%) rotate(${arrowRotation + 135}deg)`
-}
-
-function updateWheelSelection(value, shouldMoveArrow = true) {
-  const activeSquare = getWheelSquareForValue(value)
-
-  wheelSquares.forEach((square) => {
-    square.classList.toggle('is-active', square === activeSquare)
+  scoreValue.textContent = `${roundedValue}%`
+  slotResultLabel.textContent = outcome.label
+  rangeCards.forEach((card) => {
+    card.classList.toggle('is-active', card.dataset.bet === outcome.label)
   })
 
-  if (activeSquare && shouldMoveArrow) {
-    setArrowRotation(Number(activeSquare.dataset.angle))
-  }
-}
-
-function updateMeter(value, shouldMoveArrow = true) {
-  const roundedValue = Math.max(1, Math.min(100, Math.round(value)))
-  const label = getDodoLabel(roundedValue)
-  meterValue.textContent = `${roundedValue}%`
-  meterLabel.textContent = label
-  meterFill.style.width = `${roundedValue}%`
-  wheelHub.textContent = roundedValue
-  updateWheelSelection(roundedValue, shouldMoveArrow)
-
-  return label
+  return outcome
 }
 
 function updatePoints() {
@@ -173,7 +177,7 @@ function resizeCanvas() {
 }
 
 function launchFirework(x, y) {
-  const particleCount = 32
+  const particleCount = 34
 
   for (let i = 0; i < particleCount; i += 1) {
     const angle = (Math.PI * 2 * i) / particleCount
@@ -193,14 +197,27 @@ function launchFirework(x, y) {
 
 function launchButtonShow() {
   const rect = button.getBoundingClientRect()
-  const originX = rect.left + rect.width / 2
-  const originY = rect.top + rect.height / 2
-  launchFirework(originX, originY)
-
-  setTimeout(() => launchFirework(width * 0.72, height * 0.3), 240)
+  launchFirework(rect.left + rect.width / 2, rect.top + rect.height / 2)
+  setTimeout(() => launchFirework(width * 0.25, height * 0.35), 180)
+  setTimeout(() => launchFirework(width * 0.75, height * 0.32), 320)
 }
 
-function runMeasurement() {
+function settleBet(outcome, stake, bet) {
+  const won = outcome.label === bet
+
+  points += won ? stake * 3 : -stake
+  points = Math.max(0, points)
+  updatePoints()
+  betResult.textContent = won
+    ? `Jackpot. Won ${stake * 3} points on ${outcome.label}.`
+    : `Missed. Lost ${stake} points. Result: ${outcome.label}.`
+
+  if (won) {
+    launchButtonShow()
+  }
+}
+
+function spinSlots() {
   if (points <= 0) {
     points = 1000
     updatePoints()
@@ -209,54 +226,52 @@ function runMeasurement() {
 
   const stake = clampStake()
   const bet = selectedBet
-  cancelAnimationFrame(measureFrame)
-  launchButtonShow()
-
   const target = 1 + Math.floor(Math.random() * 100)
-  const targetSquare = getWheelSquareForValue(target)
-  const targetAngle = Number(targetSquare.dataset.angle)
-  const startRotation = arrowRotation
-  const currentNormalizedRotation = ((arrowRotation % 360) + 360) % 360
-  const targetNormalizedAngle = ((targetAngle % 360) + 360) % 360
-  const forwardDistance = (targetNormalizedAngle - currentNormalizedRotation + 360) % 360
-  const finalRotation = startRotation + 1440 + forwardDistance
-  const duration = 1900
+  const targetOutcome = getDodoOutcome(target)
+  const duration = 2200
   const start = performance.now()
+  const lockTimes = [0.62, 0.78, 0.94]
 
+  cancelAnimationFrame(spinFrame)
   button.disabled = true
-  button.textContent = 'Measuring...'
-  wheelArrow.classList.add('is-spinning')
+  button.textContent = 'Spinning...'
+  betResult.textContent = 'Reels are running.'
+  slotReels.forEach((reel) => reel.classList.add('is-spinning'))
+  slotReels.forEach((reel) => reel.classList.remove('is-locked'))
+  launchButtonShow()
 
   function tick(now) {
     const progress = Math.min((now - start) / duration, 1)
     const easedProgress = 1 - (1 - progress) ** 3
-    const value = 1 + (target - 1) * easedProgress
-    const spinProgress = 1 - (1 - progress) ** 4
+    const liveValue = 1 + (target - 1) * easedProgress
 
-    updateMeter(value, false)
-    setArrowRotation(startRotation + (finalRotation - startRotation) * spinProgress)
+    updateResult(liveValue)
+
+    reelSymbols.forEach((symbol, index) => {
+      if (progress >= lockTimes[index]) {
+        setReelSymbol(index, targetOutcome, true)
+        slotReels[index].classList.remove('is-spinning')
+        return
+      }
+
+      const spinIndex = Math.floor((now / (70 + index * 18)) + index) % outcomes.length
+      symbol.textContent = outcomes[spinIndex].short
+    })
 
     if (progress < 1) {
-      measureFrame = requestAnimationFrame(tick)
+      spinFrame = requestAnimationFrame(tick)
       return
     }
 
-    setArrowRotation(targetAngle)
-    wheelArrow.classList.remove('is-spinning')
-    const result = updateMeter(target)
-    const won = result === bet
-    points += won ? stake * 3 : -stake
-    points = Math.max(0, points)
-    updatePoints()
-    betResult.textContent = won
-      ? `Won ${stake * 3} points on ${result}.`
-      : `Lost ${stake} points. Result: ${result}.`
+    updateResult(target)
+    reelSymbols.forEach((_, index) => setReelSymbol(index, targetOutcome, true))
+    slotReels.forEach((reel) => reel.classList.remove('is-spinning'))
+    settleBet(targetOutcome, stake, bet)
     button.disabled = false
-    button.textContent = 'Measure'
-    launchButtonShow()
+    button.textContent = 'Spin'
   }
 
-  measureFrame = requestAnimationFrame(tick)
+  spinFrame = requestAnimationFrame(tick)
 }
 
 function animate() {
@@ -290,15 +305,19 @@ function animate() {
   animationFrame = requestAnimationFrame(animate)
 }
 
-button.addEventListener('click', runMeasurement)
+button.addEventListener('click', spinSlots)
 stakeInput.addEventListener('change', clampStake)
 betPicks.forEach((pick) => {
   pick.addEventListener('click', () => setSelectedBet(pick.dataset.bet))
 })
+rangeCards.forEach((card) => {
+  card.addEventListener('click', () => setSelectedBet(card.dataset.bet))
+})
 window.addEventListener('resize', resizeCanvas)
 
 resizeCanvas()
-updateMeter(1)
+updateResult(1)
+reelSymbols.forEach((_, index) => setReelSymbol(index, outcomes[0], true))
 updatePoints()
 animate()
 
@@ -306,5 +325,5 @@ setTimeout(launchButtonShow, 600)
 
 window.addEventListener('beforeunload', () => {
   cancelAnimationFrame(animationFrame)
-  cancelAnimationFrame(measureFrame)
+  cancelAnimationFrame(spinFrame)
 })
