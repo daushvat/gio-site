@@ -52,10 +52,16 @@ document.querySelector('#app').innerHTML = `
           <span>DoDo Points</span>
           <strong class="points-value">1000</strong>
         </div>
-        <label class="stake-control">
+        <div class="stake-control" aria-label="Bet amount">
           <span>Bet</span>
-          <input class="stake-input" type="number" min="10" max="50" step="10" value="10">
-        </label>
+          <div class="stake-coins">
+            <button class="stake-coin is-selected" type="button" data-stake="10">10</button>
+            <button class="stake-coin" type="button" data-stake="20">20</button>
+            <button class="stake-coin" type="button" data-stake="30">30</button>
+            <button class="stake-coin" type="button" data-stake="40">40</button>
+            <button class="stake-coin" type="button" data-stake="50">50</button>
+          </div>
+        </div>
         <p class="bet-result" aria-live="polite">Bet 10 to 50. Triple sticker jackpot pays x100.</p>
       </div>
 
@@ -72,7 +78,7 @@ const slotReels = [...document.querySelectorAll('.slot-reel')]
 const reelSymbols = [...document.querySelectorAll('.reel-symbol')]
 const winBurst = document.querySelector('.win-burst')
 const pointsValue = document.querySelector('.points-value')
-const stakeInput = document.querySelector('.stake-input')
+const stakeButtons = [...document.querySelectorAll('.stake-coin')]
 const betResult = document.querySelector('.bet-result')
 const particles = []
 const colors = ['#ff1744', '#ff9100', '#ffea00', '#00e676', '#00b0ff', '#651fff', '#ff00cc']
@@ -87,6 +93,7 @@ let points = 1000
 let displayedPoints = points
 let pointsAnimationTimer = 0
 let winSoundLoopTimer = 0
+let selectedStake = 10
 
 function getRandomOutcome(excludedOutcome = null) {
   const choices = excludedOutcome
@@ -230,7 +237,18 @@ function updatePointsDisplay(value = displayedPoints) {
 }
 
 function updateStakeLimit() {
-  stakeInput.max = String(Math.min(Math.max(points, 10), 50))
+  const maxSelectableStake = Math.min(points, 50)
+
+  if (selectedStake > maxSelectableStake && maxSelectableStake >= 10) {
+    selectedStake = Math.floor(maxSelectableStake / 10) * 10
+  }
+
+  stakeButtons.forEach((stakeButton) => {
+    const stake = Number(stakeButton.dataset.stake)
+    stakeButton.disabled = points < stake
+    stakeButton.classList.toggle('is-selected', stake === selectedStake)
+    stakeButton.setAttribute('aria-pressed', String(stake === selectedStake))
+  })
 }
 
 function updatePoints() {
@@ -272,12 +290,19 @@ function animatePointsTo(targetPoints, onPositiveStep = null) {
 }
 
 function clampStake() {
-  const rawStake = Number(stakeInput.value)
-  const stake = Number.isFinite(rawStake) ? rawStake : 10
-  const maxStake = Math.min(Math.max(points, 10), 50)
-  const clampedStake = Math.max(10, Math.min(maxStake, Math.round(stake / 10) * 10))
-  stakeInput.value = String(clampedStake)
-  return clampedStake
+  updateStakeLimit()
+  return selectedStake
+}
+
+function chooseStake(event) {
+  const stake = Number(event.currentTarget.dataset.stake)
+
+  if (!Number.isFinite(stake) || points < stake) {
+    return
+  }
+
+  selectedStake = stake
+  updateStakeLimit()
 }
 
 function resizeCanvas() {
@@ -549,7 +574,7 @@ function animate() {
 }
 
 button.addEventListener('click', spinSlots)
-stakeInput.addEventListener('change', clampStake)
+stakeButtons.forEach((stakeButton) => stakeButton.addEventListener('click', chooseStake))
 window.addEventListener('resize', resizeCanvas)
 
 resizeCanvas()
