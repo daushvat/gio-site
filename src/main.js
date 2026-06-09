@@ -18,7 +18,7 @@ document.querySelector('#app').innerHTML = `
       </div>
       <div class="dodo-wheel" aria-label="DODO meter wheel">
         <div class="wheel-glow" aria-hidden="true"></div>
-        <div class="wheel-arrow" aria-hidden="true"></div>
+        <img class="wheel-arrow" src="/dodo-arrow.webp" alt="" aria-hidden="true">
         <div class="wheel-hub" aria-hidden="true">?</div>
         <div class="wheel-square is-active" data-label="DODO" data-min="1" data-max="25" data-angle="-135">
           <span class="wheel-badge">x1</span>
@@ -112,7 +112,7 @@ function getWheelSquareForValue(value) {
 
 function setArrowRotation(rotation) {
   arrowRotation = rotation
-  wheelArrow.style.transform = `translate(-50%, -50%) rotate(${arrowRotation}deg)`
+  wheelArrow.style.transform = `translate(-50%, -50%) rotate(${arrowRotation + 135}deg)`
 }
 
 function updateWheelSelection(value, shouldMoveArrow = true) {

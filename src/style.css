@@ -269,34 +269,21 @@ button {
   left: 50%;
   top: 50%;
   z-index: 4;
-  width: 34%;
-  height: 10px;
-  border-radius: 999px;
-  background: #fff000;
-  box-shadow:
-    0 0 0 3px #ff006e,
-    0 0 22px rgba(255, 240, 0, 0.86);
-  transform: translate(-50%, -50%) rotate(-45deg);
+  width: 46%;
+  height: auto;
+  object-fit: contain;
+  transform: translate(-50%, -50%) rotate(0deg);
   transform-origin: 50% 50%;
+  filter:
+    drop-shadow(0 0 3px #ffffff)
+    drop-shadow(0 0 10px rgba(255, 240, 0, 0.95))
+    drop-shadow(0 8px 12px rgba(0, 0, 0, 0.62));
   transition: transform 180ms ease;
+  user-select: none;
 }
 
 .wheel-arrow.is-spinning {
   transition: none;
-}
-
-.wheel-arrow::before {
-  content: "";
-  position: absolute;
-  right: -12px;
-  top: 50%;
-  width: 0;
-  height: 0;
-  border-top: 13px solid transparent;
-  border-bottom: 13px solid transparent;
-  border-left: 22px solid #fff000;
-  transform: translateY(-50%);
-  filter: drop-shadow(3px 0 0 #ff006e);
 }
 
 .wheel-hub {
