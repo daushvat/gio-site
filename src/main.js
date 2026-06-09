@@ -86,6 +86,7 @@ let winBurstTimer = 0
 let points = 1000
 let displayedPoints = points
 let pointsAnimationTimer = 0
+let winSoundLoopTimer = 0
 
 function getRandomOutcome(excludedOutcome = null) {
   const choices = excludedOutcome
@@ -165,36 +166,56 @@ function playTone({ frequency, duration = 0.08, type = 'square', volume = 0.08, 
 }
 
 function playSpinStartSound() {
-  playTone({ frequency: 150, slideTo: 520, duration: 0.18, type: 'sawtooth', volume: 0.07 })
+  playTone({ frequency: 110, slideTo: 780, duration: 0.16, type: 'square', volume: 0.065 })
+  setTimeout(() => {
+    playTone({ frequency: 220, slideTo: 980, duration: 0.12, type: 'triangle', volume: 0.055 })
+  }, 80)
 }
 
 function playTickSound() {
-  playTone({ frequency: 760, slideTo: 420, duration: 0.035, type: 'square', volume: 0.045 })
+  playTone({ frequency: 1180, slideTo: 820, duration: 0.025, type: 'square', volume: 0.035 })
 }
 
 function playReelStopSound(index) {
-  playTone({ frequency: 300 + index * 95, slideTo: 190 + index * 70, duration: 0.1, type: 'triangle', volume: 0.08 })
+  playTone({ frequency: 520 + index * 130, slideTo: 360 + index * 110, duration: 0.075, type: 'square', volume: 0.07 })
+  setTimeout(() => {
+    playTone({ frequency: 780 + index * 140, slideTo: 660 + index * 110, duration: 0.04, type: 'triangle', volume: 0.045 })
+  }, 45)
 }
 
-function playWinSound() {
-  const notes = [420, 560, 700, 940]
+function playWinFanfare() {
+  const notes = [520, 660, 784, 1046, 1318]
   notes.forEach((frequency, index) => {
     setTimeout(() => {
-      playTone({ frequency, slideTo: frequency * 1.12, duration: 0.13, type: 'triangle', volume: 0.1 })
-    }, index * 90)
+      playTone({ frequency, slideTo: frequency * 1.18, duration: 0.105, type: 'triangle', volume: 0.085 })
+    }, index * 72)
   })
 }
 
+function startWinSoundLoop() {
+  window.clearInterval(winSoundLoopTimer)
+  playWinFanfare()
+  winSoundLoopTimer = window.setInterval(playWinFanfare, 420)
+}
+
+function stopWinSoundLoop() {
+  window.clearInterval(winSoundLoopTimer)
+  winSoundLoopTimer = 0
+}
+
 function playMissSound() {
-  playTone({ frequency: 240, slideTo: 120, duration: 0.22, type: 'sawtooth', volume: 0.065 })
+  playTone({ frequency: 280, slideTo: 92, duration: 0.24, type: 'square', volume: 0.055 })
+  setTimeout(() => {
+    playTone({ frequency: 180, slideTo: 72, duration: 0.18, type: 'sawtooth', volume: 0.035 })
+  }, 100)
 }
 
 function playSuspenseSound() {
-  const notes = [220, 248, 278, 312, 350]
+  const notes = [196, 247, 294, 370, 440, 554]
   notes.forEach((frequency, index) => {
     setTimeout(() => {
-      playTone({ frequency, slideTo: frequency * 1.04, duration: 0.16, type: 'triangle', volume: 0.055 })
-    }, index * 120)
+      playTone({ frequency, slideTo: frequency * 1.08, duration: 0.1, type: index % 2 ? 'square' : 'triangle', volume: 0.043 })
+    }, index * 105)
   })
 }
 
@@ -348,7 +369,7 @@ async function settleBet(spinResult, stake) {
     : `Near miss. Lost ${stake} points. ${firstReel.short} ${secondReel.short} ${thirdReel.short}.`
 
   if (won) {
-    playWinSound()
+    startWinSoundLoop()
     showWinBurst(thirdReel)
     launchButtonShow()
     let coinBursts = 0
@@ -360,6 +381,7 @@ async function settleBet(spinResult, stake) {
       coinBursts += 1
       launchDoDoCoins()
     })
+    stopWinSoundLoop()
     return
   }
 
@@ -385,6 +407,7 @@ function spinSlots() {
   let secondMissNoted = false
 
   cancelAnimationFrame(spinFrame)
+  stopWinSoundLoop()
   window.clearTimeout(pointsAnimationTimer)
   displayedPoints = points
   updatePointsDisplay()
@@ -538,6 +561,7 @@ animate()
 setTimeout(launchButtonShow, 600)
 
 window.addEventListener('beforeunload', () => {
+  stopWinSoundLoop()
   cancelAnimationFrame(animationFrame)
   cancelAnimationFrame(spinFrame)
 })
