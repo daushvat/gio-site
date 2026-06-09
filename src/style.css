@@ -904,7 +904,7 @@ input {
 
 @keyframes bonusWheelWin {
   from {
-    filter: saturate(1.1) brightness(1);
+    filter: saturate(1.1) brightness(1.02);
   }
 
   to {
