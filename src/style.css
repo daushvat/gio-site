@@ -38,22 +38,6 @@ button {
   pointer-events: none;
 }
 
-.result-background {
-  position: fixed;
-  inset: 0;
-  z-index: 6;
-  pointer-events: none;
-  background: url("/gio-background.jpg") center / cover no-repeat;
-  opacity: 0;
-  transition: opacity 420ms ease;
-  mask-image: linear-gradient(to bottom, transparent 0%, #000000 100%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000000 100%);
-}
-
-.result-background.is-visible {
-  opacity: 1;
-}
-
 .page-shell {
   position: relative;
   min-height: 100svh;
