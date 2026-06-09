@@ -84,6 +84,8 @@ let audioContext = null
 let lastTickSound = 0
 let winBurstTimer = 0
 let points = 1000
+let displayedPoints = points
+let pointsAnimationTimer = 0
 
 function getRandomOutcome(excludedOutcome = null) {
   const choices = excludedOutcome
@@ -202,9 +204,43 @@ function updateResult(outcome) {
   return outcome
 }
 
-function updatePoints() {
-  pointsValue.textContent = points.toLocaleString()
+function updatePointsDisplay(value = displayedPoints) {
+  pointsValue.textContent = value.toLocaleString()
+}
+
+function updateStakeLimit() {
   stakeInput.max = String(Math.min(Math.max(points, 10), 50))
+}
+
+function updatePoints() {
+  displayedPoints = points
+  updatePointsDisplay()
+  updateStakeLimit()
+}
+
+function animatePointsTo(targetPoints) {
+  window.clearTimeout(pointsAnimationTimer)
+  updateStakeLimit()
+
+  return new Promise((resolve) => {
+    const target = Math.max(0, targetPoints)
+
+    function count() {
+      if (displayedPoints === target) {
+        resolve()
+        return
+      }
+
+      displayedPoints += displayedPoints < target ? 1 : -1
+      updatePointsDisplay()
+
+      const remaining = Math.abs(target - displayedPoints)
+      const delay = remaining > 2000 ? 1 : remaining > 500 ? 2 : 8
+      pointsAnimationTimer = window.setTimeout(count, delay)
+    }
+
+    count()
+  })
 }
 
 function clampStake() {
@@ -292,14 +328,14 @@ function showWinBurst(outcome) {
   }, 1500)
 }
 
-function settleBet(spinResult, stake) {
+async function settleBet(spinResult, stake) {
   const [firstReel, secondReel, thirdReel] = spinResult.reels
   const won = firstReel.label === secondReel.label && secondReel.label === thirdReel.label
   const payout = stake * thirdReel.multiplier
 
   points += won ? payout : -stake
   points = Math.max(0, points)
-  updatePoints()
+  updateStakeLimit()
   betResult.textContent = won
     ? `${thirdReel.isSticker ? 'Sticker jackpot' : 'Jackpot'} x${thirdReel.multiplier}. Won ${payout} points.`
     : `Near miss. Lost ${stake} points. ${firstReel.short} ${secondReel.short} ${thirdReel.short}.`
@@ -308,14 +344,17 @@ function settleBet(spinResult, stake) {
     playWinSound()
     showWinBurst(thirdReel)
     launchButtonShow()
+    await animatePointsTo(points)
     return
   }
 
   playMissSound()
+  await animatePointsTo(points)
 }
 
 function spinSlots() {
   if (points <= 0) {
+    window.clearTimeout(pointsAnimationTimer)
     points = 1000
     updatePoints()
     betResult.textContent = 'Fresh 1000 points. Emoji mercy.'
@@ -331,6 +370,9 @@ function spinSlots() {
   let secondMissNoted = false
 
   cancelAnimationFrame(spinFrame)
+  window.clearTimeout(pointsAnimationTimer)
+  displayedPoints = points
+  updatePointsDisplay()
   clearTimeout(winBurstTimer)
   winBurst.classList.remove('is-visible', 'is-sticker-jackpot')
   getAudioContext()
@@ -401,9 +443,10 @@ function spinSlots() {
     reelSymbols.forEach((_, index) => setReelSymbol(index, spinResult.reels[index], true))
     slotReels.forEach((reel) => reel.classList.remove('is-spinning'))
     slotReels.forEach((reel) => reel.classList.remove('is-dramatic'))
-    settleBet(spinResult, stake)
-    button.disabled = false
-    button.textContent = 'Spin'
+    settleBet(spinResult, stake).then(() => {
+      button.disabled = false
+      button.textContent = 'Spin'
+    })
   }
 
   spinFrame = requestAnimationFrame(tick)
