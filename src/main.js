@@ -15,15 +15,18 @@ const galleryShots = [
     position: 'top center',
   },
   {
-    title: 'After Hours',
-    detail: 'Stories, charm, and a little mystery under electric-blue lights.',
+    title: 'Tire Yard Test',
+    detail: 'A rough-edge training ground scene where Gio made even the toughest backdrop look like a fan meet.',
+    image: '/gio-training-yard.jpg',
+    alt: 'Gio smiling and gesturing in a tire-filled training yard',
+    position: 'center top',
   },
 ]
 
 const storyBeats = [
   'Gio watched the city through mirrors, windows, and blue evening glass: calm shoulders, sharp eyes, and that impossible focus everyone pretended not to notice.',
   'Some afternoons he climbed above the street, opened his arms to the skyline, and made the whole city look like it was waiting for his next move.',
-  'He never chased attention. He helped old neighbors cross rainy streets, settled arguments before they became trouble, and made even the loudest nights behave.',
+  'Even in the rough training yards, surrounded by dust, tires, and echoing shots, Gio smiled like he had just invited the whole city backstage.',
   'By midnight, the rumor was already moving from block to block: if a steady glance appeared in the rear-view mirror or a shadow stood above the avenue, Gio was nearby, and every heart in the city knew it.',
 ]
 
