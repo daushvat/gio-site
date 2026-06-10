@@ -28,12 +28,19 @@ const galleryShots = [
     alt: 'Gio standing at night in a rocky outdoor setting',
     position: 'center top',
   },
+  {
+    title: 'Public Address',
+    detail: 'The official podium moment: flags behind him, city listening, and Gio delivering the line like a born headline.',
+    image: '/gio-public-address.jpg',
+    alt: 'Gio speaking at a podium between flags',
+    position: 'center top',
+  },
 ]
 
 const storyBeats = [
   'Gio watched the city through mirrors, windows, and blue evening glass: calm shoulders, sharp eyes, and that impossible focus everyone pretended not to notice.',
   'Some afternoons he climbed above the street, opened his arms to the skyline, and made the whole city look like it was waiting for his next move.',
-  'Even in the rough training yards, surrounded by dust, tires, and echoing shots, Gio smiled like he had just invited the whole city backstage.',
+  'Some days he stood at the podium with flags behind him, speaking so calmly that even the microphones looked nervous.',
   'By midnight, the rumor was already moving from block to block: if a steady glance appeared in the rear-view mirror or a sharp shadow crossed the canyon road, Gio was nearby, and every heart in the city knew it.',
 ]
 
@@ -129,7 +136,8 @@ document.querySelector('#app').innerHTML = `
         <h2 id="profile-title">Blue uniform. Bright city. Main-character energy.</h2>
         <p>
           GioFans is built like a premium personal profile: bold headline, cinematic biography,
-          smooth gallery blocks, and a professional blue visual system ready for real photos.
+          official moments, street legends, night patrols, and a professional blue visual system
+          shaped around Gio's real photos.
         </p>
       </div>
       <div class="stats-strip" aria-label="Profile highlights">
