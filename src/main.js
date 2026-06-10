@@ -21,13 +21,20 @@ const galleryShots = [
     alt: 'Gio smiling and gesturing in a tire-filled training yard',
     position: 'center top',
   },
+  {
+    title: 'Night Patrol',
+    detail: 'A midnight canyon frame with hard shadows, bright focus, and Gio looking calm when the city gets loud.',
+    image: '/gio-night-patrol.jpg',
+    alt: 'Gio standing at night in a rocky outdoor setting',
+    position: 'center top',
+  },
 ]
 
 const storyBeats = [
   'Gio watched the city through mirrors, windows, and blue evening glass: calm shoulders, sharp eyes, and that impossible focus everyone pretended not to notice.',
   'Some afternoons he climbed above the street, opened his arms to the skyline, and made the whole city look like it was waiting for his next move.',
   'Even in the rough training yards, surrounded by dust, tires, and echoing shots, Gio smiled like he had just invited the whole city backstage.',
-  'By midnight, the rumor was already moving from block to block: if a steady glance appeared in the rear-view mirror or a shadow stood above the avenue, Gio was nearby, and every heart in the city knew it.',
+  'By midnight, the rumor was already moving from block to block: if a steady glance appeared in the rear-view mirror or a sharp shadow crossed the canyon road, Gio was nearby, and every heart in the city knew it.',
 ]
 
 document.querySelector('#app').innerHTML = `
@@ -93,7 +100,7 @@ document.querySelector('#app').innerHTML = `
     <section class="gallery-band" id="gallery" aria-labelledby="gallery-title">
       <div class="section-heading">
         <p class="eyebrow">Photo-ready layout</p>
-        <h2 id="gallery-title">Drop the next photos here</h2>
+        <h2 id="gallery-title">Gio's growing city file</h2>
       </div>
       <div class="gallery-grid">
         ${galleryShots
