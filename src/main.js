@@ -35,13 +35,20 @@ const galleryShots = [
     alt: 'Gio speaking at a podium between flags',
     position: 'center top',
   },
+  {
+    title: 'Blue Hour Sighting',
+    detail: 'A cold-blue street frame where Gio looked like the kind of man cameras notice before people do.',
+    image: '/gio-blue-hour.jpg',
+    alt: 'Gio standing in a blue-toned street camera image',
+    position: 'center top',
+  },
 ]
 
 const storyBeats = [
   'Gio watched the city through mirrors, windows, and blue evening glass: calm shoulders, sharp eyes, and that impossible focus everyone pretended not to notice.',
   'Some afternoons he climbed above the street, opened his arms to the skyline, and made the whole city look like it was waiting for his next move.',
   'Some days he stood at the podium with flags behind him, speaking so calmly that even the microphones looked nervous.',
-  'By midnight, the rumor was already moving from block to block: if a steady glance appeared in the rear-view mirror or a sharp shadow crossed the canyon road, Gio was nearby, and every heart in the city knew it.',
+  'By midnight, the rumor was already moving from block to block: if a blue camera frame caught a quiet figure by the street, Gio was nearby, and every heart in the city knew it.',
 ]
 
 document.querySelector('#app').innerHTML = `
