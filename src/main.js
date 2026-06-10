@@ -2,8 +2,10 @@ import './style.css'
 
 const galleryShots = [
   {
-    title: 'Blue Patrol',
-    detail: 'A night-watch portrait for the officer every boulevard recognizes.',
+    title: 'Rear-View Watch',
+    detail: 'The quiet glance from the patrol car that started every rumor on the avenue.',
+    image: '/gio-rearview.jpg',
+    alt: 'Gio reflected in a car rear-view mirror',
   },
   {
     title: 'City Smile',
@@ -16,10 +18,10 @@ const galleryShots = [
 ]
 
 const storyBeats = [
-  'Gio walked the city like it was built for him: calm shoulders, clean uniform, sharp eyes, and that impossible smile everyone pretended not to notice.',
-  'At every cafe window, girls whispered the same thing: the city felt safer when he passed by, and somehow a little more dangerous too.',
+  'Gio watched the city through mirrors, windows, and blue evening glass: calm shoulders, sharp eyes, and that impossible focus everyone pretended not to notice.',
+  'At every cafe window, girls whispered the same thing: the city felt safer when he passed by, and somehow a little more electric too.',
   'He never chased attention. He helped old neighbors cross rainy streets, settled arguments before they became trouble, and made even the loudest nights behave.',
-  'By midnight, the rumor was already moving from block to block: if blue lights flashed softly on the avenue, Gio was nearby, and every heart in the city knew it.',
+  'By midnight, the rumor was already moving from block to block: if a steady glance appeared in the rear-view mirror, Gio was nearby, and every heart in the city knew it.',
 ]
 
 document.querySelector('#app').innerHTML = `
@@ -53,13 +55,11 @@ document.querySelector('#app').innerHTML = `
 
         <aside class="profile-panel" aria-label="Featured profile card">
           <div class="photo-stage">
-            <div class="photo-placeholder">
-              <span>Gio</span>
-            </div>
+            <img src="/gio-rearview.jpg" alt="Gio reflected in a car rear-view mirror" />
           </div>
           <div class="profile-meta">
             <span class="status-dot"></span>
-            <span>City favorite • Police story edition</span>
+            <span>Rear-view exclusive • Police story edition</span>
           </div>
         </aside>
       </div>
@@ -95,7 +95,11 @@ document.querySelector('#app').innerHTML = `
             (shot, index) => `
               <article class="gallery-card">
                 <div class="gallery-image">
-                  <span>Photo ${index + 1}</span>
+                  ${
+                    shot.image
+                      ? `<img src="${shot.image}" alt="${shot.alt}" />`
+                      : `<span>Photo ${index + 1}</span>`
+                  }
                 </div>
                 <h3>${shot.title}</h3>
                 <p>${shot.detail}</p>
