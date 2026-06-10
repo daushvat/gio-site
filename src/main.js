@@ -8,8 +8,11 @@ const galleryShots = [
     alt: 'Gio reflected in a car rear-view mirror',
   },
   {
-    title: 'City Smile',
-    detail: 'The kind of look that turns traffic into applause.',
+    title: 'King of the Hill',
+    detail: 'Arms open above the city, pointing toward the skyline like the whole block belonged to him.',
+    image: '/gio-city-rooftop.jpg',
+    alt: 'Gio standing on a car with arms out toward the city skyline',
+    position: 'top center',
   },
   {
     title: 'After Hours',
@@ -19,9 +22,9 @@ const galleryShots = [
 
 const storyBeats = [
   'Gio watched the city through mirrors, windows, and blue evening glass: calm shoulders, sharp eyes, and that impossible focus everyone pretended not to notice.',
-  'At every cafe window, girls whispered the same thing: the city felt safer when he passed by, and somehow a little more electric too.',
+  'Some afternoons he climbed above the street, opened his arms to the skyline, and made the whole city look like it was waiting for his next move.',
   'He never chased attention. He helped old neighbors cross rainy streets, settled arguments before they became trouble, and made even the loudest nights behave.',
-  'By midnight, the rumor was already moving from block to block: if a steady glance appeared in the rear-view mirror, Gio was nearby, and every heart in the city knew it.',
+  'By midnight, the rumor was already moving from block to block: if a steady glance appeared in the rear-view mirror or a shadow stood above the avenue, Gio was nearby, and every heart in the city knew it.',
 ]
 
 document.querySelector('#app').innerHTML = `
@@ -97,7 +100,7 @@ document.querySelector('#app').innerHTML = `
                 <div class="gallery-image">
                   ${
                     shot.image
-                      ? `<img src="${shot.image}" alt="${shot.alt}" />`
+                      ? `<img src="${shot.image}" alt="${shot.alt}" style="object-position: ${shot.position || 'center'}" />`
                       : `<span>Photo ${index + 1}</span>`
                   }
                 </div>
