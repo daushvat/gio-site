@@ -42,12 +42,20 @@ const galleryShots = [
     alt: 'Gio standing in a blue-toned street camera image',
     position: 'center top',
   },
+  {
+    title: 'Tow Ramp Royalty',
+    detail: 'Autumn leaves overhead, car on the ramp, and Gio still looking like the only calm man in the whole operation.',
+    image: '/gio-tow-ramp.jpg',
+    alt: 'Gio sitting in a white SUV on a tow truck ramp under yellow autumn leaves',
+    position: 'center center',
+  },
 ]
 
 const storyBeats = [
   'Gio watched the city through mirrors, windows, and blue evening glass: calm shoulders, sharp eyes, and that impossible focus everyone pretended not to notice.',
   'Some afternoons he climbed above the street, opened his arms to the skyline, and made the whole city look like it was waiting for his next move.',
   'Some days he stood at the podium with flags behind him, speaking so calmly that even the microphones looked nervous.',
+  'Even when the car ended up on a tow ramp under yellow autumn leaves, Gio kept the window down and the attitude up, like roadside chaos was just another photo call.',
   'By midnight, the rumor was already moving from block to block: if a blue camera frame caught a quiet figure by the street, Gio was nearby, and every heart in the city knew it.',
 ]
 
