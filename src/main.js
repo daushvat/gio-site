@@ -13,16 +13,15 @@ const outcomes = [
 
 const reelCount = 5
 const finalReelIndex = reelCount - 1
-const winChance = 0.05
 const payoutTiers = [
   { matchCount: 3, fraction: 0.25, label: '3 Match' },
   { matchCount: 4, fraction: 0.6, label: '4 Match' },
   { matchCount: 5, fraction: 1, label: '5 Match' },
 ]
-const winTierWeights = [
-  { matchCount: 3, weight: 60 },
-  { matchCount: 4, weight: 30 },
-  { matchCount: 5, weight: 10 },
+const winTierChances = [
+  { matchCount: 5, chance: 0.05 },
+  { matchCount: 4, chance: 0.1 },
+  { matchCount: 3, chance: 0.15 },
 ]
 const bonusChargeNeeded = 7
 const bonusMultipliers = [
@@ -127,7 +126,7 @@ document.querySelector('#app').innerHTML = `
             <span class="bonus-meter__fill"></span>
           </div>
         </div>
-        <p class="bet-result" aria-live="polite">Bet 10 to 50. Paid spins are 5%. Match 3, 4, or 5 icons.</p>
+        <p class="bet-result" aria-live="polite">Bet 10 to 50. 3-match 15%, 4-match 10%, 5-match 5%.</p>
       </div>
 
       <button class="dodo-button" type="button">Spin</button>
@@ -191,18 +190,17 @@ function getPayoutTier(matchCount) {
 }
 
 function chooseWinMatchCount() {
-  const totalWeight = winTierWeights.reduce((total, tier) => total + tier.weight, 0)
-  let roll = Math.random() * totalWeight
+  let roll = Math.random()
 
-  for (const tier of winTierWeights) {
-    roll -= tier.weight
-
-    if (roll <= 0) {
+  for (const tier of winTierChances) {
+    if (roll < tier.chance) {
       return tier.matchCount
     }
+
+    roll -= tier.chance
   }
 
-  return winTierWeights[0].matchCount
+  return 0
 }
 
 function shuffleReels(reels) {
@@ -237,7 +235,8 @@ function createLosingReels() {
 }
 
 function createSpinResult() {
-  const isWin = Math.random() < winChance
+  const matchCount = chooseWinMatchCount()
+  const isWin = matchCount > 0
 
   if (!isWin) {
     return {
@@ -247,7 +246,6 @@ function createSpinResult() {
     }
   }
 
-  const matchCount = chooseWinMatchCount()
   const winningOutcome = getRandomOutcome()
   const misses = Array.from(
     { length: reelCount - matchCount },
