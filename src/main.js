@@ -91,14 +91,24 @@ document.querySelector('#app').innerHTML = `
           <span class="win-burst__shine"></span>
         </div>
 
-        <div class="bonus-wheel" aria-hidden="true">
+        <div class="bonus-wheel">
           <div class="bonus-wheel__card">
             <span class="bonus-wheel__eyebrow">Bonus Game</span>
-            <div class="bonus-wheel__pointer" aria-hidden="true"></div>
-            <div class="bonus-wheel__disc">
-              <span class="bonus-wheel__multiplier">x2</span>
+            <p class="bonus-wheel__text">Choose a card</p>
+            <div class="bonus-card-grid">
+              <button class="bonus-card-choice" type="button" data-card="0" disabled>
+                <span class="bonus-card-choice__back">?</span>
+                <span class="bonus-card-choice__value">x2</span>
+              </button>
+              <button class="bonus-card-choice" type="button" data-card="1" disabled>
+                <span class="bonus-card-choice__back">?</span>
+                <span class="bonus-card-choice__value">x2</span>
+              </button>
+              <button class="bonus-card-choice" type="button" data-card="2" disabled>
+                <span class="bonus-card-choice__back">?</span>
+                <span class="bonus-card-choice__value">x2</span>
+              </button>
             </div>
-            <p class="bonus-wheel__text">50 chances from x2 to x100</p>
           </div>
         </div>
       </div>
@@ -156,8 +166,8 @@ const stakeButtons = [...document.querySelectorAll('.stake-coin')]
 const betResult = document.querySelector('.bet-result')
 const bonusMeterFill = document.querySelector('.bonus-meter__fill')
 const bonusWheel = document.querySelector('.bonus-wheel')
-const bonusWheelMultiplier = document.querySelector('.bonus-wheel__multiplier')
 const bonusWheelText = document.querySelector('.bonus-wheel__text')
+const bonusCardChoices = [...document.querySelectorAll('.bonus-card-choice')]
 const particles = []
 const colors = ['#ff1744', '#ff9100', '#ffea00', '#00e676', '#00b0ff', '#651fff', '#ff00cc']
 let width = 0
@@ -538,40 +548,55 @@ function playBonusWheelSound() {
   })
 }
 
-function showBonusWheel(multiplier) {
-  const revealDelay = 3000 + Math.random() * 2000
-
+function showBonusCards() {
   window.clearTimeout(bonusWheelTimer)
-  bonusWheelMultiplier.textContent = '?'
-  bonusWheelText.textContent = 'Bonus wheel spinning...'
-  bonusWheel.classList.remove('is-visible', 'is-finished')
-  bonusWheel.style.setProperty('--bonus-rotation', `${1440 + Math.random() * 720}deg`)
-  bonusWheel.style.setProperty('--bonus-duration', `${revealDelay}ms`)
+  bonusWheelText.textContent = 'Choose a card'
+  bonusWheel.classList.remove('is-visible', 'is-finished', 'has-picked')
+  bonusCardChoices.forEach((card) => {
+    card.classList.remove('is-picked', 'is-muted')
+    card.disabled = false
+    card.onclick = null
+  })
+
+  const cardMultipliers = bonusCardChoices.map(() => getBonusMultiplier())
+  bonusCardChoices.forEach((card, index) => {
+    card.querySelector('.bonus-card-choice__value').textContent = `x${cardMultipliers[index]}`
+  })
+
   bonusWheel.offsetHeight
   bonusWheel.classList.add('is-visible')
   playBonusWheelSound()
 
   return new Promise((resolve) => {
-    bonusWheelTimer = window.setTimeout(() => {
-      bonusWheelMultiplier.textContent = `x${multiplier}`
-      bonusWheelText.textContent = `Bonus landed on x${multiplier}`
-      bonusWheel.classList.add('is-finished')
-      launchDoDoCoins()
-      resolve()
-    }, revealDelay)
+    bonusCardChoices.forEach((card, index) => {
+      card.onclick = () => {
+        const multiplier = cardMultipliers[index]
+
+        bonusCardChoices.forEach((choice) => {
+          choice.disabled = true
+          choice.onclick = null
+          choice.classList.toggle('is-muted', choice !== card)
+        })
+
+        card.classList.add('is-picked')
+        bonusWheel.classList.add('has-picked')
+        bonusWheelText.textContent = `You picked x${multiplier}`
+        bonusWheel.classList.add('is-finished')
+        launchDoDoCoins()
+        resolve(multiplier)
+      }
+    })
   })
 }
 
 async function playBonusGame(stake) {
-  const multiplier = getBonusMultiplier()
-  const payout = stake * multiplier
-
   button.textContent = 'Bonus...'
-  betResult.textContent = 'Bonus meter full. Entering bonus wheel.'
-  await showBonusWheel(multiplier)
+  betResult.textContent = 'Bonus meter full. Pick one of three cards.'
+  const multiplier = await showBonusCards()
+  const payout = stake * multiplier
   points += payout
   updateStakeLimit()
-  betResult.textContent = `Bonus wheel x${multiplier}. Won ${payout} DoDo Points.`
+  betResult.textContent = `Bonus card x${multiplier}. Won ${payout} DoDo Points.`
   startWinSoundLoop()
 
   let coinBursts = 0
@@ -587,6 +612,10 @@ async function playBonusGame(stake) {
   stopWinSoundLoop()
   bonusWheelTimer = window.setTimeout(() => {
     bonusWheel.classList.remove('is-visible', 'is-finished')
+    bonusCardChoices.forEach((card) => {
+      card.disabled = true
+      card.onclick = null
+    })
   }, 600)
 }
 
@@ -653,6 +682,10 @@ function spinSlots() {
   winBurst.classList.remove('is-visible', 'is-sticker-jackpot')
   window.clearTimeout(bonusWheelTimer)
   bonusWheel.classList.remove('is-visible', 'is-finished')
+  bonusCardChoices.forEach((card) => {
+    card.disabled = true
+    card.onclick = null
+  })
   getAudioContext()
   button.disabled = true
   button.textContent = 'Spinning...'
