@@ -104,16 +104,6 @@ document.querySelector('#app').innerHTML = `
         </div>
       </div>
 
-      <div class="paytable" aria-label="Icon payout multipliers">
-        <div class="paytable-header">
-          <span>Icon Pays</span>
-          <strong>3 = 25% · 4 = 60% · 5 = Full</strong>
-        </div>
-        <div class="paytable-grid">
-          ${paytableMarkup}
-        </div>
-      </div>
-
       <div class="bet-panel" aria-label="Emoji slot betting controls">
         <div class="points-card">
           <span>DoDo Points</span>
@@ -141,6 +131,16 @@ document.querySelector('#app').innerHTML = `
       </div>
 
       <button class="dodo-button" type="button">Spin</button>
+
+      <div class="paytable" aria-label="Icon payout multipliers">
+        <div class="paytable-header">
+          <span>Icon Pays</span>
+          <strong>3 = 25% · 4 = 60% · 5 = Full</strong>
+        </div>
+        <div class="paytable-grid">
+          ${paytableMarkup}
+        </div>
+      </div>
     </section>
   </main>
 `
