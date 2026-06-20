@@ -13,6 +13,17 @@ const outcomes = [
 
 const reelCount = 5
 const finalReelIndex = reelCount - 1
+const winChance = 0.05
+const payoutTiers = [
+  { matchCount: 3, fraction: 0.25, label: '3 Match' },
+  { matchCount: 4, fraction: 0.6, label: '4 Match' },
+  { matchCount: 5, fraction: 1, label: '5 Match' },
+]
+const winTierWeights = [
+  { matchCount: 3, weight: 60 },
+  { matchCount: 4, weight: 30 },
+  { matchCount: 5, weight: 10 },
+]
 const bonusChargeNeeded = 7
 const bonusMultipliers = [
   2, 2, 2, 2, 2, 2, 2, 2,
@@ -33,6 +44,22 @@ const bonusMultipliers = [
   100,
 ]
 
+function getOutcomeSymbolMarkup(outcome) {
+  return outcome.isSticker
+    ? `<img src="${outcome.icon}" alt="${outcome.label}">`
+    : `<span>${outcome.short}</span>`
+}
+
+const paytableMarkup = outcomes.map((outcome) => `
+  <div class="paytable-item">
+    <div class="paytable-symbol">${getOutcomeSymbolMarkup(outcome)}</div>
+    <div class="paytable-value">
+      <span>${outcome.label}</span>
+      <strong>x${outcome.multiplier}</strong>
+    </div>
+  </div>
+`).join('')
+
 document.querySelector('#app').innerHTML = `
   <canvas class="fireworks" aria-hidden="true"></canvas>
   <main class="page-shell">
@@ -44,6 +71,7 @@ document.querySelector('#app').innerHTML = `
           <img class="slot-sticker" src="/dodo-arrow.webp" alt="" aria-hidden="true">
           <div class="score-chip">
             <span class="score-value">x6</span>
+            <span class="score-label">Icon Multiplier</span>
           </div>
         </div>
 
@@ -76,6 +104,16 @@ document.querySelector('#app').innerHTML = `
         </div>
       </div>
 
+      <div class="paytable" aria-label="Icon payout multipliers">
+        <div class="paytable-header">
+          <span>Icon Pays</span>
+          <strong>3 = 25% · 4 = 60% · 5 = Full</strong>
+        </div>
+        <div class="paytable-grid">
+          ${paytableMarkup}
+        </div>
+      </div>
+
       <div class="bet-panel" aria-label="Emoji slot betting controls">
         <div class="points-card">
           <span>DoDo Points</span>
@@ -99,7 +137,7 @@ document.querySelector('#app').innerHTML = `
             <span class="bonus-meter__fill"></span>
           </div>
         </div>
-        <p class="bet-result" aria-live="polite">Bet 10 to 50. Five-sticker jackpot pays x100.</p>
+        <p class="bet-result" aria-live="polite">Bet 10 to 50. Paid spins are 5%. Match 3, 4, or 5 icons.</p>
       </div>
 
       <button class="dodo-button" type="button">Spin</button>
@@ -146,30 +184,83 @@ function getRandomOutcome(excludedOutcome = null) {
   return choices[Math.floor(Math.random() * choices.length)]
 }
 
-function createSpinResult() {
-  const firstOutcome = getRandomOutcome()
-  const secondMisses = Math.random() < 0.3
+function getPayoutTier(matchCount) {
+  return payoutTiers
+    .filter((tier) => matchCount >= tier.matchCount)
+    .at(-1) || null
+}
 
-  if (secondMisses) {
-    return {
-      isJackpot: false,
-      reels: [
-        firstOutcome,
-        getRandomOutcome(firstOutcome),
-        ...Array.from({ length: reelCount - 2 }, () => getRandomOutcome()),
-      ],
+function chooseWinMatchCount() {
+  const totalWeight = winTierWeights.reduce((total, tier) => total + tier.weight, 0)
+  let roll = Math.random() * totalWeight
+
+  for (const tier of winTierWeights) {
+    roll -= tier.weight
+
+    if (roll <= 0) {
+      return tier.matchCount
     }
   }
 
-  const isJackpot = Math.random() < 0.3
-  const finalOutcome = isJackpot ? firstOutcome : getRandomOutcome(firstOutcome)
+  return winTierWeights[0].matchCount
+}
+
+function shuffleReels(reels) {
+  for (let index = reels.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1))
+    ;[reels[index], reels[swapIndex]] = [reels[swapIndex], reels[index]]
+  }
+
+  return reels
+}
+
+function getBestMatch(reels) {
+  const counts = new Map()
+
+  reels.forEach((reel) => {
+    const current = counts.get(reel.label) || { outcome: reel, count: 0 }
+    current.count += 1
+    counts.set(reel.label, current)
+  })
+
+  return [...counts.values()].sort((first, second) => second.count - first.count)[0]
+}
+
+function createLosingReels() {
+  let reels = []
+
+  do {
+    reels = Array.from({ length: reelCount }, () => getRandomOutcome())
+  } while (getBestMatch(reels).count >= 3)
+
+  return reels
+}
+
+function createSpinResult() {
+  const isWin = Math.random() < winChance
+
+  if (!isWin) {
+    return {
+      isWin: false,
+      matchCount: 0,
+      reels: createLosingReels(),
+    }
+  }
+
+  const matchCount = chooseWinMatchCount()
+  const winningOutcome = getRandomOutcome()
+  const misses = Array.from(
+    { length: reelCount - matchCount },
+    () => getRandomOutcome(winningOutcome),
+  )
 
   return {
-    isJackpot,
-    reels: [
-      ...Array.from({ length: finalReelIndex }, () => firstOutcome),
-      finalOutcome,
-    ],
+    isWin: true,
+    matchCount,
+    reels: shuffleReels([
+      ...Array.from({ length: matchCount }, () => winningOutcome),
+      ...misses,
+    ]),
   }
 }
 
@@ -421,13 +512,13 @@ function launchDoDoCoins() {
   }
 }
 
-function showWinBurst(outcome) {
+function showWinBurst(outcome, matchCount) {
   clearTimeout(winBurstTimer)
   winBurst.classList.remove('is-visible', 'is-sticker-jackpot')
   winBurst.offsetHeight
 
   winBurst.classList.toggle('is-sticker-jackpot', outcome.isSticker)
-  winBurst.querySelector('.win-burst__label').textContent = outcome.isSticker ? '100X' : 'WIN'
+  winBurst.querySelector('.win-burst__label').textContent = `${matchCount}X`
   winBurst.classList.add('is-visible')
   launchDoDoCoins()
 
@@ -502,20 +593,24 @@ async function playBonusGame(stake) {
 }
 
 async function settleBet(spinResult, stake) {
-  const winningOutcome = spinResult.reels[finalReelIndex]
-  const won = spinResult.reels.every((reel) => reel.label === winningOutcome.label)
-  const payout = stake * winningOutcome.multiplier
+  const bestMatch = getBestMatch(spinResult.reels)
+  const payoutTier = getPayoutTier(bestMatch.count)
+  const won = Boolean(payoutTier)
+  const effectiveMultiplier = won
+    ? bestMatch.outcome.multiplier * payoutTier.fraction
+    : 0
+  const payout = Math.ceil(stake * effectiveMultiplier)
 
   points += won ? payout : -stake
   points = Math.max(0, points)
   updateStakeLimit()
   betResult.textContent = won
-    ? `${winningOutcome.isSticker ? 'Sticker jackpot' : 'Jackpot'} x${winningOutcome.multiplier}. Won ${payout} points.`
+    ? `${payoutTier.label} ${bestMatch.outcome.short} x${effectiveMultiplier}. Won ${payout} points.`
     : `Near miss. Lost ${stake} points. ${spinResult.reels.map((reel) => reel.short).join(' ')}.`
 
   if (won) {
     startWinSoundLoop()
-    showWinBurst(winningOutcome)
+    showWinBurst(bestMatch.outcome, bestMatch.count)
     launchButtonShow()
     let coinBursts = 0
     await animatePointsTo(points, (positiveSteps) => {
@@ -549,7 +644,7 @@ function spinSlots() {
   const lockTimes = [0.28, 0.42, 0.56, 0.7, 1]
   const lockedReels = Array.from({ length: reelCount }, () => false)
   let suspenseStarted = false
-  let secondMissNoted = false
+  let lossNoted = false
 
   cancelAnimationFrame(spinFrame)
   stopWinSoundLoop()
@@ -574,7 +669,7 @@ function spinSlots() {
   function tick(now) {
     const progress = Math.min((now - start) / duration, 1)
 
-    updateResult(spinResult.reels[finalReelIndex])
+    updateResult(getBestMatch(spinResult.reels).outcome)
 
     reelSymbols.forEach((symbol, index) => {
       if (progress >= lockTimes[index]) {
@@ -589,11 +684,14 @@ function spinSlots() {
         return
       }
 
-      const firstTwoMatch = spinResult.reels[0].label === spinResult.reels[1].label
+      const firstThreeLocked = lockedReels.slice(0, 3).every(Boolean)
+      const firstThreeMatch = spinResult.reels
+        .slice(0, 3)
+        .every((reel) => reel.label === spinResult.reels[0].label)
 
-      if (lockedReels[0] && lockedReels[1] && !firstTwoMatch && !secondMissNoted) {
-        secondMissNoted = true
-        betResult.textContent = 'Second reel missed. No five-match this spin.'
+      if (!spinResult.isWin && firstThreeLocked && !firstThreeMatch && !lossNoted) {
+        lossNoted = true
+        betResult.textContent = 'No 3-match this spin.'
       }
 
       const firstFourLocked = lockedReels.slice(0, finalReelIndex).every(Boolean)
@@ -633,7 +731,7 @@ function spinSlots() {
       return
     }
 
-    updateResult(spinResult.reels[finalReelIndex])
+    updateResult(getBestMatch(spinResult.reels).outcome)
     reelSymbols.forEach((_, index) => setReelSymbol(index, spinResult.reels[index], true))
     slotReels.forEach((reel) => reel.classList.remove('is-spinning'))
     slotReels.forEach((reel) => reel.classList.remove('is-dramatic'))
